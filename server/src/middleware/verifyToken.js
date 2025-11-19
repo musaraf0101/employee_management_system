@@ -23,7 +23,7 @@ export const verifyToken = async (req, res, next) => {
       });
     }
 
-    req.userId = user.id;
+    req.userId = user._id;
     req.userRole = user.role;
 
     next();
