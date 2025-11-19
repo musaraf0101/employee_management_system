@@ -1,3 +1,4 @@
+import bcrypt from "bcryptjs";
 import { generateToken } from "../config/token.js";
 import User from "../models/User.model.js";
 
@@ -5,7 +6,7 @@ export const login = async (req, res) => {
   try {
     const { email, password } = req.body;
 
-    const checkUser = await User.findOne({ email: email });
+    const checkUser = await User.findOne({ email: email }).select("+password");
 
     if (!checkUser) {
       return res.status(404).json({
@@ -35,6 +36,10 @@ export const login = async (req, res) => {
     res.status(200).json({
       success: true,
       message: "Login success",
+      data: {
+        id: checkUser._id,
+        email: checkUser.email,
+      },
     });
   } catch (error) {
     res.status(500).json({
@@ -45,20 +50,11 @@ export const login = async (req, res) => {
   }
 };
 
-export const logout = async (req, res) => {
+export const logout = (req, res) => {
   res.clearCookie("token");
 
   res.status(200).json({
     success: true,
     message: "Logout success",
   });
-
-  try {
-  } catch (error) {
-    res.status(500).json({
-      success: false,
-      message: "Inernal server error",
-      details: error.message,
-    });
-  }
 };

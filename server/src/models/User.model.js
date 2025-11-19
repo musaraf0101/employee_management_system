@@ -10,16 +10,18 @@ const userShema = new mongoose.Schema(
       type: String,
       required: true,
       lowercase: true,
+      unique: true,
     },
     password: {
       type: String,
       required: true,
-      unique: true,
+      select: false,
       minlength: 8,
     },
     role: {
       type: String,
       enum: ["admin", "employee"],
+      default: "employee",
       required: true,
     },
     position: {
