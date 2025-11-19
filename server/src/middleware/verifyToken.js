@@ -1,6 +1,7 @@
 import jwt from "jsonwebtoken";
+import User from "./../models/User.model.js";
 
-export const verifyToken = (req, res, next) => {
+export const verifyToken = async (req, res, next) => {
   try {
     const token =
       req.cookies?.token || req.header("Authorization")?.replace("Bearer ", "");
@@ -8,19 +9,28 @@ export const verifyToken = (req, res, next) => {
     if (!token) {
       return res.status(401).json({
         success: false,
-        message: "access dinied",
+        message: "Access denied",
       });
     }
 
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    const user = await User.findById(decoded.id);
 
-    req.userId = decoded.id;
+    if (!user) {
+      return res.status(401).json({
+        success: false,
+        message: "User not found",
+      });
+    }
+
+    req.userId = user.id;
+    req.userRole = user.role;
 
     next();
   } catch (error) {
     res.status(401).json({
       success: false,
-      message: "Invalid or expire token",
+      message: "Invalid or expired token",
     });
   }
 };
