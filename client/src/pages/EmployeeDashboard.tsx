@@ -1,6 +1,9 @@
+import { useState } from "react";
 import EmployeeSidebar from "../components/EmployeeSidebar";
-
+import LeaveModal from "../components/LeaveModal";
 const EmployeeDashboard = () => {
+  const [isModalOpen, setIsModalOpen] = useState(false);
+
   return (
     <div className="flex min-h-screen bg-gray-100">
       <EmployeeSidebar />
@@ -8,7 +11,10 @@ const EmployeeDashboard = () => {
         <div className="max-w-7xl mx-auto">
           <div className="bg-white rounded-lg shadow-md p-6">
             <div className="flex justify-end">
-              <button className="py-3 px-3 bg-linear-to-r from-blue-400 to-blue-600 text-white rounded-md cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed">
+              <button
+                onClick={() => setIsModalOpen(true)}
+                className="py-3 px-4 bg-linear-to-r from-blue-400 to-blue-600 text-white rounded-md cursor-pointer hover:from-blue-500 hover:to-blue-700 transition"
+              >
                 New Request
               </button>
             </div>
@@ -29,6 +35,7 @@ const EmployeeDashboard = () => {
           </div>
         </div>
       </div>
+      <LeaveModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} />
     </div>
   );
 };
