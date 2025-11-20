@@ -7,6 +7,11 @@ const EmployeeDashboard = () => {
       <div className="flex-1 p-8">
         <div className="max-w-7xl mx-auto">
           <div className="bg-white rounded-lg shadow-md p-6">
+            <div className="flex justify-end">
+              <button className="py-3 px-3 bg-linear-to-r from-blue-400 to-blue-600 text-white rounded-md cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed">
+                New Request
+              </button>
+            </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-8">
               <div className="bg-blue-100 p-6 rounded-lg">
                 <h3 className="text-xl font-semibold text-blue-800">
