@@ -129,6 +129,25 @@ export const deleteLeaveRequest = async (req, res) => {
 // admin
 export const acceptLeaveRequest = async (req, res) => {
   try {
+    const { leaveId } = req.params;
+    const leave = await Leave.findByIdAndUpdate(
+      leaveId,
+      { status: "approved" },
+      { new: true }
+    );
+
+    if (!leave) {
+      return res.status(404).json({
+        success: false,
+        message: "leave not found",
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      message: "leave approved",
+      data: leave,
+    });
   } catch (error) {
     res.status(500).json({
       success: false,
@@ -139,6 +158,25 @@ export const acceptLeaveRequest = async (req, res) => {
 };
 export const rejectLeaveRequest = async (req, res) => {
   try {
+    const leaveId = req.params;
+
+    const leave = await Leave.findByIdAndUpdate(
+      leaveId,
+      { status: "rejected" },
+      { new: true }
+    );
+    if (!leave) {
+      return res.status(404).json({
+        success: false,
+        message: "leave not found",
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      message: "leave rejected",
+      data: leave,
+    });
   } catch (error) {
     res.status(500).json({
       success: false,
