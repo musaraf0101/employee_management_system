@@ -30,13 +30,16 @@ const LeaveRequest = () => {
           }
         );
         console.log("Leave requests response:", response.data);
-        const leaveRequests =   response.data.data || response.data;
+        const leaveRequests = response.data.data || response.data;
         console.log("Leave requests:", leaveRequests);
         setAllLeaveRequests(leaveRequests);
         toast.success(`Loaded ${leaveRequests.length} leave requests`);
       } catch (error: any) {
         console.error("Error fetching leave requests:", error);
-        const errorMsg = error.response?.data?.message || error.message || "Failed to fetch leave requests";
+        const errorMsg =
+          error.response?.data?.message ||
+          error.message ||
+          "Failed to fetch leave requests";
         toast.error(errorMsg);
       } finally {
         setLoading(false);
@@ -83,11 +86,13 @@ const LeaveRequest = () => {
       const url = window.URL.createObjectURL(new Blob([response.data]));
       const link = document.createElement("a");
       link.href = url;
-      
+
       const employee = allEmployees.find((emp) => emp._id === selectedEmployee);
       link.setAttribute(
         "download",
-        `leave-report-${employee?.name || "employee"}-${selectedMonth}-${selectedYear}.pdf`
+        `leave-report-${
+          employee?.name || "employee"
+        }-${selectedMonth}-${selectedYear}.pdf`
       );
       document.body.appendChild(link);
       link.click();
@@ -103,44 +108,70 @@ const LeaveRequest = () => {
       toast.error("Failed to download report");
     }
   };
-  const filteredRequests = allLeaveRequests.filter((request) => {
-    const matchLeaveType =
-      leaveTypeFilter === "" || 
-      request.leaveType === leaveTypeFilter ||
-      (leaveTypeFilter === "full-day" && request.leaveType === "full_day") ||
-      (leaveTypeFilter === "full_day" && request.leaveType === "full-day");
-    const employeeName = request.userId?.name || request.employeeName || "";
-    const matchSearch =
-      searchQuery === "" ||
-      employeeName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      request.reason?.toLowerCase().includes(searchQuery.toLowerCase());
-    let matchDateRange = true;
-    if (
-      (request.leaveType === "full-day" || request.leaveType === "full_day") &&
-      (startDateFilter || endDateFilter)
-    ) {
-      const reqStartDate = request.startDate ? new Date(request.startDate).toISOString().split('T')[0] : null;
-      const reqEndDate = request.endDate ? new Date(request.endDate).toISOString().split('T')[0] : null;
-      
-      if (startDateFilter && reqStartDate && reqStartDate < startDateFilter)
-        matchDateRange = false;
-      if (endDateFilter && reqEndDate && reqEndDate > endDateFilter)
-        matchDateRange = false;
-    }
-    let matchTimeRange = true;
-    if (request.leaveType === "short" && (startTimeFilter || endTimeFilter)) {
+  const filteredRequests = allLeaveRequests
+    .filter((request) => {
+      const matchLeaveType =
+        leaveTypeFilter === "" ||
+        request.leaveType === leaveTypeFilter ||
+        (leaveTypeFilter === "full-day" && request.leaveType === "full_day") ||
+        (leaveTypeFilter === "full_day" && request.leaveType === "full-day");
+      const employeeName = request.userId?.name || request.employeeName || "";
+      const matchSearch =
+        searchQuery === "" ||
+        employeeName.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        request.reason?.toLowerCase().includes(searchQuery.toLowerCase());
+      let matchDateRange = true;
       if (
-        startTimeFilter &&
-        request.startTime &&
-        request.startTime < startTimeFilter
-      )
-        matchTimeRange = false;
-      if (endTimeFilter && request.endTime && request.endTime > endTimeFilter)
-        matchTimeRange = false;
-    }
+        (request.leaveType === "full-day" ||
+          request.leaveType === "full_day") &&
+        (startDateFilter || endDateFilter)
+      ) {
+        const reqStartDate = request.startDate
+          ? new Date(request.startDate).toISOString().split("T")[0]
+          : null;
+        const reqEndDate = request.endDate
+          ? new Date(request.endDate).toISOString().split("T")[0]
+          : null;
 
-    return matchLeaveType && matchSearch && matchDateRange && matchTimeRange;
-  });
+        if (startDateFilter && reqStartDate && reqStartDate < startDateFilter)
+          matchDateRange = false;
+        if (endDateFilter && reqEndDate && reqEndDate > endDateFilter)
+          matchDateRange = false;
+      }
+      let matchTimeRange = true;
+      if (request.leaveType === "short" && (startTimeFilter || endTimeFilter)) {
+        if (
+          startTimeFilter &&
+          request.startTime &&
+          request.startTime < startTimeFilter
+        )
+          matchTimeRange = false;
+        if (endTimeFilter && request.endTime && request.endTime > endTimeFilter)
+          matchTimeRange = false;
+      }
+
+      return matchLeaveType && matchSearch && matchDateRange && matchTimeRange;
+    })
+    .sort((a, b) => {
+      const statusOrder = {
+        Pending: 0,
+        pending: 0,
+        Approved: 1,
+        approved: 1,
+        Rejected: 2,
+        rejected: 2,
+      };
+      const statusA = statusOrder[a.status as keyof typeof statusOrder] ?? 3;
+      const statusB = statusOrder[b.status as keyof typeof statusOrder] ?? 3;
+
+      if (statusA !== statusB) {
+        return statusA - statusB;
+      }
+
+      const dateA = new Date(a.createdAt || a._id).getTime();
+      const dateB = new Date(b.createdAt || b._id).getTime();
+      return dateB - dateA;
+    });
 
   const clearFilters = () => {
     setLeaveTypeFilter("");
@@ -158,17 +189,18 @@ const LeaveRequest = () => {
         {},
         { withCredentials: true }
       );
-      
+
       setAllLeaveRequests((prev) =>
         prev.map((req) =>
           req._id === requestId ? { ...req, status: "Approved" } : req
         )
       );
-      
+
       toast.success("Leave request approved successfully!");
     } catch (error: any) {
       console.error("Error approving leave request:", error);
-      const errorMsg = error.response?.data?.message || "Failed to approve leave request";
+      const errorMsg =
+        error.response?.data?.message || "Failed to approve leave request";
       toast.error(errorMsg);
     }
   };
@@ -180,17 +212,18 @@ const LeaveRequest = () => {
         {},
         { withCredentials: true }
       );
-      
+
       setAllLeaveRequests((prev) =>
         prev.map((req) =>
           req._id === requestId ? { ...req, status: "Rejected" } : req
         )
       );
-      
+
       toast.success("Leave request rejected successfully!");
     } catch (error: any) {
       console.error("Error rejecting leave request:", error);
-      const errorMsg = error.response?.data?.message || "Failed to reject leave request";
+      const errorMsg =
+        error.response?.data?.message || "Failed to reject leave request";
       toast.error(errorMsg);
     }
   };
@@ -320,109 +353,142 @@ const LeaveRequest = () => {
                 <div className="inline-block min-w-full align-middle">
                   <div className="overflow-hidden">
                     <table className="min-w-full border-collapse">
-                  <thead>
-                    <tr className="bg-gray-100">
-                      <th className="p-2 md:p-3 text-left border-b text-sm md:text-base">
-                        Name
-                      </th>
-                      <th className="p-2 md:p-3 text-left border-b text-sm md:text-base">
-                        Type
-                      </th>
-                      <th className="p-2 md:p-3 text-left border-b text-sm md:text-base">
-                        Reason
-                      </th>
-                      <th className="p-2 md:p-3 text-left border-b text-sm md:text-base">
-                        Date/Time
-                      </th>
-                      <th className="p-2 md:p-3 text-left border-b text-sm md:text-base">
-                        Status
-                      </th>
-                      <th className="p-2 md:p-3 text-left border-b text-sm md:text-base">
-                        Actions
-                      </th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {filteredRequests.length === 0 ? (
-                      <tr>
-                        <td
-                          colSpan={7}
-                          className="p-4 text-center text-gray-500"
-                        >
-                          No leave requests found
-                        </td>
-                      </tr>
-                    ) : (
-                      filteredRequests.map((request) => (
-                        <tr key={request._id} className="hover:bg-gray-50">
-                          <td className="p-2 md:p-3 border-b text-sm md:text-base">
-                            {request.userId?.name || request.employeeName || "N/A"}
-                          </td>
-                          <td className="p-2 md:p-3 border-b text-sm md:text-base">
-                            <span
-                              className={`px-2 py-1 rounded-full text-sm ${
-                                request.leaveType === "full-day" || request.leaveType === "full_day"
-                                  ? "bg-blue-100 text-blue-800"
-                                  : "bg-purple-100 text-purple-800"
-                              }`}
-                            >
-                              {request.leaveType === "full-day" || request.leaveType === "full_day"
-                                ? "Full Day"
-                                : "Short Leave"}
-                            </span>
-                          </td>
-                          <td className="p-2 md:p-3 border-b text-sm md:text-base">
-                            {request.reason}
-                          </td>
-                          <td className="p-2 md:p-3 border-b text-sm md:text-base">
-                            {(request.leaveType === "full-day" || request.leaveType === "full_day")
-                              ? `${request.startDate ? new Date(request.startDate).toLocaleDateString() : 'N/A'} to ${request.endDate ? new Date(request.endDate).toLocaleDateString() : 'N/A'}`
-                              : `${request.startDate ? new Date(request.startDate).toLocaleDateString() : 'N/A'} (${request.startTime || 'N/A'} - ${request.endTime || 'N/A'})`}
-                          </td>
-                          <td className="p-2 md:p-3 border-b text-sm md:text-base">
-                            <span
-                              className={`px-2 py-1 rounded-full text-sm ${
-                                request.status === "Approved"
-                                  ? "bg-green-100 text-green-800"
-                                  : request.status === "Rejected"
-                                  ? "bg-red-100 text-red-800"
-                                  : "bg-yellow-100 text-yellow-800"
-                              }`}
-                            >
-                              {request.status}
-                            </span>
-                          </td>
-                          <td className="p-2 md:p-3 border-b text-sm md:text-base">
-                            <div className="flex gap-2">
-                              <button 
-                                onClick={() => handleApprove(request._id)}
-                                disabled={request.status !== "Pending" && request.status !== "pending"}
-                                className={`px-3 py-1 rounded ${
-                                  request.status === "Pending" || request.status === "pending"
-                                    ? "bg-green-500 text-white hover:bg-green-600"
-                                    : "bg-gray-300 text-gray-500 cursor-not-allowed"
-                                }`}
-                              >
-                                Approve
-                              </button>
-                              <button 
-                                onClick={() => handleReject(request._id)}
-                                disabled={request.status !== "Pending" && request.status !== "pending"}
-                                className={`px-3 py-1 rounded ${
-                                  request.status === "Pending" || request.status === "pending"
-                                    ? "bg-red-500 text-white hover:bg-red-600"
-                                    : "bg-gray-300 text-gray-500 cursor-not-allowed"
-                                }`}
-                              >
-                                Reject
-                              </button>
-                            </div>
-                          </td>
+                      <thead>
+                        <tr className="bg-gray-100">
+                          <th className="p-2 md:p-3 text-left border-b text-sm md:text-base">
+                            Name
+                          </th>
+                          <th className="p-2 md:p-3 text-left border-b text-sm md:text-base">
+                            Type
+                          </th>
+                          <th className="p-2 md:p-3 text-left border-b text-sm md:text-base">
+                            Reason
+                          </th>
+                          <th className="p-2 md:p-3 text-left border-b text-sm md:text-base">
+                            Date/Time
+                          </th>
+                          <th className="p-2 md:p-3 text-left border-b text-sm md:text-base">
+                            Status
+                          </th>
+                          <th className="p-2 md:p-3 text-left border-b text-sm md:text-base">
+                            Actions
+                          </th>
                         </tr>
-                      ))
-                    )}
-                  </tbody>
-                </table>
+                      </thead>
+                      <tbody>
+                        {filteredRequests.length === 0 ? (
+                          <tr>
+                            <td
+                              colSpan={7}
+                              className="p-4 text-center text-gray-500"
+                            >
+                              No leave requests found
+                            </td>
+                          </tr>
+                        ) : (
+                          filteredRequests.map((request) => (
+                            <tr key={request._id} className="hover:bg-gray-50">
+                              <td className="p-2 md:p-3 border-b text-sm md:text-base">
+                                {request.userId?.name ||
+                                  request.employeeName ||
+                                  "N/A"}
+                              </td>
+                              <td className="p-2 md:p-3 border-b text-sm md:text-base">
+                                <span
+                                  className={`px-2 py-1 rounded-full text-sm ${
+                                    request.leaveType === "full-day" ||
+                                    request.leaveType === "full_day"
+                                      ? "bg-blue-100 text-blue-800"
+                                      : "bg-purple-100 text-purple-800"
+                                  }`}
+                                >
+                                  {request.leaveType === "full-day" ||
+                                  request.leaveType === "full_day"
+                                    ? "Full Day"
+                                    : "Short Leave"}
+                                </span>
+                              </td>
+                              <td className="p-2 md:p-3 border-b text-sm md:text-base">
+                                {request.reason}
+                              </td>
+                              <td className="p-2 md:p-3 border-b text-sm md:text-base">
+                                {request.leaveType === "full-day" ||
+                                request.leaveType === "full_day"
+                                  ? `${
+                                      request.startDate
+                                        ? new Date(
+                                            request.startDate
+                                          ).toLocaleDateString()
+                                        : "N/A"
+                                    } to ${
+                                      request.endDate
+                                        ? new Date(
+                                            request.endDate
+                                          ).toLocaleDateString()
+                                        : "N/A"
+                                    }`
+                                  : `${
+                                      request.startDate
+                                        ? new Date(
+                                            request.startDate
+                                          ).toLocaleDateString()
+                                        : "N/A"
+                                    } (${request.startTime || "N/A"} - ${
+                                      request.endTime || "N/A"
+                                    })`}
+                              </td>
+                              <td className="p-2 md:p-3 border-b text-sm md:text-base">
+                                <span
+                                  className={`px-2 py-1 rounded-full text-sm ${
+                                    request.status === "Approved"
+                                      ? "bg-green-100 text-green-800"
+                                      : request.status === "Rejected"
+                                      ? "bg-red-100 text-red-800"
+                                      : "bg-yellow-100 text-yellow-800"
+                                  }`}
+                                >
+                                  {request.status}
+                                </span>
+                              </td>
+                              <td className="p-2 md:p-3 border-b text-sm md:text-base">
+                                <div className="flex gap-2">
+                                  <button
+                                    onClick={() => handleApprove(request._id)}
+                                    disabled={
+                                      request.status !== "Pending" &&
+                                      request.status !== "pending"
+                                    }
+                                    className={`px-3 py-1 rounded ${
+                                      request.status === "Pending" ||
+                                      request.status === "pending"
+                                        ? "bg-green-500 text-white hover:bg-green-600"
+                                        : "bg-gray-300 text-gray-500 cursor-not-allowed"
+                                    }`}
+                                  >
+                                    Approve
+                                  </button>
+                                  <button
+                                    onClick={() => handleReject(request._id)}
+                                    disabled={
+                                      request.status !== "Pending" &&
+                                      request.status !== "pending"
+                                    }
+                                    className={`px-3 py-1 rounded ${
+                                      request.status === "Pending" ||
+                                      request.status === "pending"
+                                        ? "bg-red-500 text-white hover:bg-red-600"
+                                        : "bg-gray-300 text-gray-500 cursor-not-allowed"
+                                    }`}
+                                  >
+                                    Reject
+                                  </button>
+                                </div>
+                              </td>
+                            </tr>
+                          ))
+                        )}
+                      </tbody>
+                    </table>
                   </div>
                 </div>
               </div>
