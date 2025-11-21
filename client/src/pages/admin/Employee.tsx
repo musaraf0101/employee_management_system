@@ -54,14 +54,32 @@ const Employee = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
+    // Validation
+    if (!formData.name || !formData.email || !formData.password || !formData.role) {
+      alert("Please fill all required fields");
+      return;
+    }
+
+    if (formData.password.length < 8) {
+      alert("Password must be at least 8 characters");
+      return;
+    }
+
     try {
-      const response = await axios.post(
+      console.log("Sending data:", formData);
+      
+      await axios.post(
         "http://localhost:3000/api/add-user",
         formData,
         { withCredentials: true }
       );
 
-      setAllEmployees([...allEmployees, response.data]);
+      // Refresh the employee list
+      const updatedResponse = await axios.get(
+        "http://localhost:3000/api/admin/employees",
+        { withCredentials: true }
+      );
+      setAllEmployees(updatedResponse.data);
 
       setFormData({
         name: "",
@@ -74,8 +92,16 @@ const Employee = () => {
 
       alert("Employee added successfully!");
     } catch (error: any) {
-      console.error("Error adding employee:", error);
-      alert(error.response?.data?.message || "Failed to add employee");
+      console.error("Full error:", error);
+      console.error("Error response:", error.response);
+      console.error("Error status:", error.response?.status);
+      console.error("Error data:", error.response?.data);
+      
+      const errorMsg = error.response?.data?.message || 
+                       error.response?.data?.error || 
+                       error.message || 
+                       "Failed to add employee";
+      alert(errorMsg);
     }
   };
 
@@ -253,6 +279,7 @@ const Employee = () => {
                   }
                   className="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                   placeholder="Enter name"
+                  required
                 />
               </div>
               <div>
@@ -267,6 +294,7 @@ const Employee = () => {
                   }
                   className="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                   placeholder="Enter email"
+                  required
                 />
               </div>
               <div>
@@ -281,6 +309,8 @@ const Employee = () => {
                   }
                   className="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                   placeholder="Enter password"
+                  required
+                  minLength={8}
                 />
               </div>
               <div>
@@ -293,6 +323,7 @@ const Employee = () => {
                     setFormData({ ...formData, role: e.target.value })
                   }
                   className="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  required
                 >
                   <option value="">Select role</option>
                   <option value="admin">Admin</option>
