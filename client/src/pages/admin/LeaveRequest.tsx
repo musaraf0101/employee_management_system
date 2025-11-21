@@ -277,10 +277,7 @@ const LeaveRequest = () => {
                   <thead>
                     <tr className="bg-gray-100">
                       <th className="p-2 md:p-3 text-left border-b text-sm md:text-base">
-                        ID
-                      </th>
-                      <th className="p-2 md:p-3 text-left border-b text-sm md:text-base">
-                        Employee
+                        Name
                       </th>
                       <th className="p-2 md:p-3 text-left border-b text-sm md:text-base">
                         Type
@@ -312,9 +309,6 @@ const LeaveRequest = () => {
                     ) : (
                       filteredRequests.map((request) => (
                         <tr key={request._id} className="hover:bg-gray-50">
-                          <td className="p-2 md:p-3 border-b text-sm md:text-base">
-                            {request._id}
-                          </td>
                           <td className="p-2 md:p-3 border-b text-sm md:text-base">
                             {request.userId?.name || request.employeeName || "N/A"}
                           </td>
