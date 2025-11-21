@@ -185,7 +185,7 @@ export const acceptLeaveRequest = async (req, res) => {
     const { id } = req.params;
     const leave = await Leave.findByIdAndUpdate(
       id,
-      { status: "approved" },
+      { status: "Approved" },
       { new: true }
     );
 
@@ -215,7 +215,7 @@ export const rejectLeaveRequest = async (req, res) => {
 
     const leave = await Leave.findByIdAndUpdate(
       id,
-      { status: "rejected" },
+      { status: "Rejected" },
       { new: true }
     );
     if (!leave) {

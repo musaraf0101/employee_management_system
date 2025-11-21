@@ -46,13 +46,13 @@ leaveRouter.delete(
   deleteLeaveRequest
 );
 leaveRouter.put(
-  "/leave/approve/:id",
+  "/admin/leave-requests/:id/approve",
   verifyToken,
   authorizedRoles("admin"),
   acceptLeaveRequest
 );
 leaveRouter.put(
-  "/leave/rejected/:id",
+  "/admin/leave-requests/:id/reject",
   verifyToken,
   authorizedRoles("admin"),
   rejectLeaveRequest
