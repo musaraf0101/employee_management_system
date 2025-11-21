@@ -105,24 +105,26 @@ const LeaveRequest = () => {
   };
   const filteredRequests = allLeaveRequests.filter((request) => {
     const matchLeaveType =
-      leaveTypeFilter === "" || request.leaveType === leaveTypeFilter;
+      leaveTypeFilter === "" || 
+      request.leaveType === leaveTypeFilter ||
+      (leaveTypeFilter === "full-day" && request.leaveType === "full_day") ||
+      (leaveTypeFilter === "full_day" && request.leaveType === "full-day");
     const employeeName = request.userId?.name || request.employeeName || "";
     const matchSearch =
       searchQuery === "" ||
       employeeName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      request.reason.toLowerCase().includes(searchQuery.toLowerCase());
+      request.reason?.toLowerCase().includes(searchQuery.toLowerCase());
     let matchDateRange = true;
     if (
-      request.leaveType === "full-day" &&
+      (request.leaveType === "full-day" || request.leaveType === "full_day") &&
       (startDateFilter || endDateFilter)
     ) {
-      if (
-        startDateFilter &&
-        request.startDate &&
-        request.startDate < startDateFilter
-      )
+      const reqStartDate = request.startDate ? new Date(request.startDate).toISOString().split('T')[0] : null;
+      const reqEndDate = request.endDate ? new Date(request.endDate).toISOString().split('T')[0] : null;
+      
+      if (startDateFilter && reqStartDate && reqStartDate < startDateFilter)
         matchDateRange = false;
-      if (endDateFilter && request.endDate && request.endDate > endDateFilter)
+      if (endDateFilter && reqEndDate && reqEndDate > endDateFilter)
         matchDateRange = false;
     }
     let matchTimeRange = true;
@@ -359,12 +361,12 @@ const LeaveRequest = () => {
                           <td className="p-2 md:p-3 border-b text-sm md:text-base">
                             <span
                               className={`px-2 py-1 rounded-full text-sm ${
-                                request.leaveType === "full-day"
+                                request.leaveType === "full-day" || request.leaveType === "full_day"
                                   ? "bg-blue-100 text-blue-800"
                                   : "bg-purple-100 text-purple-800"
                               }`}
                             >
-                              {request.leaveType === "full-day"
+                              {request.leaveType === "full-day" || request.leaveType === "full_day"
                                 ? "Full Day"
                                 : "Short Leave"}
                             </span>
@@ -373,9 +375,9 @@ const LeaveRequest = () => {
                             {request.reason}
                           </td>
                           <td className="p-2 md:p-3 border-b text-sm md:text-base">
-                            {request.leaveType === "full-day"
-                              ? `${request.startDate} to ${request.endDate}`
-                              : `${request.date} (${request.startTime} - ${request.endTime})`}
+                            {(request.leaveType === "full-day" || request.leaveType === "full_day")
+                              ? `${request.startDate ? new Date(request.startDate).toLocaleDateString() : 'N/A'} to ${request.endDate ? new Date(request.endDate).toLocaleDateString() : 'N/A'}`
+                              : `${request.startDate ? new Date(request.startDate).toLocaleDateString() : 'N/A'} (${request.startTime || 'N/A'} - ${request.endTime || 'N/A'})`}
                           </td>
                           <td className="p-2 md:p-3 border-b text-sm md:text-base">
                             <span
