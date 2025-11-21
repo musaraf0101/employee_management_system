@@ -14,18 +14,32 @@ export const getEmployeeStats = async (req, res) => {
     const myRequests = await Leave.countDocuments({ userId });
 
     const currentMonth = new Date();
-    const startOfMonth = new Date(currentMonth.getFullYear(), currentMonth.getMonth(), 1);
-    const endOfMonth = new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1, 0);
+    const startOfMonth = new Date(
+      currentMonth.getFullYear(),
+      currentMonth.getMonth(),
+      1
+    );
+    const endOfMonth = new Date(
+      currentMonth.getFullYear(),
+      currentMonth.getMonth() + 1,
+      0
+    );
 
     const monthLeaveCount = await Leave.countDocuments({
       userId,
       startDate: { $gte: startOfMonth, $lte: endOfMonth },
     });
 
+    const recentLeaves = await Leave.find({ userId })
+      .sort({ createdAt: -1 })
+      .limit(5)
+      .select("leaveType startDate endDate status createdAt");
+
     res.status(200).json({
       success: true,
       myRequests,
       monthLeaveCount,
+      recentLeaves,
     });
   } catch (error) {
     res.status(500).json({
@@ -39,7 +53,7 @@ export const getEmployeeStats = async (req, res) => {
 export const getAdminDashboardStats = async (req, res) => {
   try {
     const User = (await import("../models/User.model.js")).default;
-    
+
     const totalEmployees = await User.countDocuments({ role: "employee" });
 
     const today = new Date();
@@ -50,13 +64,10 @@ export const getAdminDashboardStats = async (req, res) => {
     const totalLeaveEmployees = await Leave.countDocuments({
       status: { $in: ["Approved", "approved"] },
       startDate: { $lte: tomorrow },
-      $or: [
-        { endDate: { $gte: today } },
-        { endDate: null }
-      ]
+      $or: [{ endDate: { $gte: today } }, { endDate: null }],
     });
     const pendingRequests = await Leave.countDocuments({
-      status: { $in: ["Pending", "pending"] }
+      status: { $in: ["Pending", "pending"] },
     });
 
     res.status(200).json({
@@ -79,7 +90,7 @@ export const getAdminDashboardStats = async (req, res) => {
 export const getAllLeaveRequests = async (req, res) => {
   try {
     const leaves = await Leave.find().populate("userId", "name email position");
-    
+
     res.status(200).json({
       success: true,
       data: leaves,
