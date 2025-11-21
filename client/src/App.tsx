@@ -45,6 +45,14 @@ const App = () => {
               </ProtectedRoute>
             }
           />
+          <Route
+            path="/employee/update"
+            element={
+              <ProtectedRoute allowedRole="employee">
+                <EmployeeDashboard />
+              </ProtectedRoute>
+            }
+          />
         </Routes>
       </div>
     </AuthProvider>
