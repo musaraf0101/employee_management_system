@@ -1,9 +1,11 @@
 import { useState, useEffect } from "react";
 import AdminSidebar from "../../components/AdminSidebar";
 import axios from "axios";
+import toast from "react-hot-toast";
 
 const LeaveRequest = () => {
   const [allLeaveRequests, setAllLeaveRequests] = useState<any[]>([]);
+  const [allEmployees, setAllEmployees] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [leaveTypeFilter, setLeaveTypeFilter] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
@@ -11,6 +13,12 @@ const LeaveRequest = () => {
   const [endDateFilter, setEndDateFilter] = useState("");
   const [startTimeFilter, setStartTimeFilter] = useState("");
   const [endTimeFilter, setEndTimeFilter] = useState("");
+  const [isReportModalOpen, setIsReportModalOpen] = useState(false);
+  const [selectedEmployee, setSelectedEmployee] = useState("");
+  const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth() + 1);
+  const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
+  const [employeeSearchQuery, setEmployeeSearchQuery] = useState("");
+  const [showEmployeeDropdown, setShowEmployeeDropdown] = useState(false);
 
   useEffect(() => {
     const fetchLeaveRequests = async () => {
@@ -21,22 +29,87 @@ const LeaveRequest = () => {
             withCredentials: true,
           }
         );
-        setAllLeaveRequests(response.data);
-      } catch (error) {
+        console.log("Leave requests response:", response.data);
+        const leaveRequests =   response.data.data || response.data;
+        console.log("Leave requests:", leaveRequests);
+        setAllLeaveRequests(leaveRequests);
+        toast.success(`Loaded ${leaveRequests.length} leave requests`);
+      } catch (error: any) {
         console.error("Error fetching leave requests:", error);
+        const errorMsg = error.response?.data?.message || error.message || "Failed to fetch leave requests";
+        toast.error(errorMsg);
       } finally {
         setLoading(false);
       }
     };
 
     fetchLeaveRequests();
+    fetchEmployees();
   }, []);
+
+  const fetchEmployees = async () => {
+    try {
+      const response = await axios.get(
+        "http://localhost:3000/api/admin/employees",
+        { withCredentials: true }
+      );
+      setAllEmployees(response.data.data || response.data);
+    } catch (error) {
+      console.error("Error fetching employees:", error);
+    }
+  };
+
+  const handleDownloadReport = async () => {
+    if (!selectedEmployee) {
+      toast.error("Please select an employee");
+      return;
+    }
+
+    try {
+      const response = await axios.get(
+        `http://localhost:3000/api/report/leave-monthly`,
+        {
+          params: {
+            userId: selectedEmployee,
+            month: selectedMonth,
+            year: selectedYear,
+          },
+          responseType: "blob",
+          withCredentials: true,
+        }
+      );
+
+      // Create download link
+      const url = window.URL.createObjectURL(new Blob([response.data]));
+      const link = document.createElement("a");
+      link.href = url;
+      
+      const employee = allEmployees.find((emp) => emp._id === selectedEmployee);
+      link.setAttribute(
+        "download",
+        `leave-report-${employee?.name || "employee"}-${selectedMonth}-${selectedYear}.pdf`
+      );
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+
+      toast.success("Report downloaded successfully!");
+      setIsReportModalOpen(false);
+      setSelectedEmployee("");
+      setEmployeeSearchQuery("");
+      setShowEmployeeDropdown(false);
+    } catch (error: any) {
+      console.error("Error downloading report:", error);
+      toast.error("Failed to download report");
+    }
+  };
   const filteredRequests = allLeaveRequests.filter((request) => {
     const matchLeaveType =
       leaveTypeFilter === "" || request.leaveType === leaveTypeFilter;
+    const employeeName = request.userId?.name || request.employeeName || "";
     const matchSearch =
       searchQuery === "" ||
-      request.employeeName.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      employeeName.toLowerCase().includes(searchQuery.toLowerCase()) ||
       request.reason.toLowerCase().includes(searchQuery.toLowerCase());
     let matchDateRange = true;
     if (
@@ -82,10 +155,16 @@ const LeaveRequest = () => {
       <div className="flex-1 p-4 md:p-8 w-full md:w-auto pt-20 md:pt-8">
         <div className="max-w-7xl mx-auto w-full">
           <div className="bg-white rounded-lg shadow-md p-4 md:p-6 w-full">
-            <div className="mb-6">
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
               <h1 className="text-2xl md:text-3xl font-bold text-gray-800">
                 Leave Requests
               </h1>
+              <button
+                onClick={() => setIsReportModalOpen(true)}
+                className="w-full sm:w-auto py-2 px-4 bg-green-500 text-white rounded-md hover:bg-green-600"
+              >
+                Download Monthly Report
+              </button>
             </div>
             <div className="mb-4">
               <input
@@ -232,12 +311,12 @@ const LeaveRequest = () => {
                       </tr>
                     ) : (
                       filteredRequests.map((request) => (
-                        <tr key={request.id} className="hover:bg-gray-50">
+                        <tr key={request._id} className="hover:bg-gray-50">
                           <td className="p-2 md:p-3 border-b text-sm md:text-base">
-                            {request.id}
+                            {request._id}
                           </td>
                           <td className="p-2 md:p-3 border-b text-sm md:text-base">
-                            {request.employeeName}
+                            {request.userId?.name || request.employeeName || "N/A"}
                           </td>
                           <td className="p-2 md:p-3 border-b text-sm md:text-base">
                             <span
@@ -297,6 +376,145 @@ const LeaveRequest = () => {
           </div>
         </div>
       </div>
+
+      {isReportModalOpen && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 w-full max-w-md shadow-xl">
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="text-2xl font-bold text-gray-800">
+                Download Monthly Leave Report
+              </h2>
+              <button
+                onClick={() => setIsReportModalOpen(false)}
+                className="text-gray-500 hover:text-gray-700 text-2xl"
+              >
+                ×
+              </button>
+            </div>
+            <div className="space-y-4">
+              <div className="relative">
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Select Employee
+                </label>
+                <input
+                  type="text"
+                  value={
+                    selectedEmployee
+                      ? allEmployees.find((emp) => emp._id === selectedEmployee)
+                          ?.name || ""
+                      : employeeSearchQuery
+                  }
+                  onChange={(e) => {
+                    setEmployeeSearchQuery(e.target.value);
+                    setSelectedEmployee("");
+                    setShowEmployeeDropdown(true);
+                  }}
+                  onFocus={() => setShowEmployeeDropdown(true)}
+                  placeholder="Search employee by name..."
+                  className="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
+                {showEmployeeDropdown && (
+                  <div className="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-md shadow-lg max-h-60 overflow-y-auto">
+                    {allEmployees
+                      .filter((emp) =>
+                        emp.name
+                          .toLowerCase()
+                          .includes(employeeSearchQuery.toLowerCase())
+                      )
+                      .map((emp) => (
+                        <div
+                          key={emp._id}
+                          onClick={() => {
+                            setSelectedEmployee(emp._id);
+                            setEmployeeSearchQuery(emp.name);
+                            setShowEmployeeDropdown(false);
+                          }}
+                          className="p-2 hover:bg-blue-50 cursor-pointer"
+                        >
+                          <div className="font-medium">{emp.name}</div>
+                          <div className="text-sm text-gray-600">
+                            {emp.position} - {emp.email}
+                          </div>
+                        </div>
+                      ))}
+                    {allEmployees.filter((emp) =>
+                      emp.name
+                        .toLowerCase()
+                        .includes(employeeSearchQuery.toLowerCase())
+                    ).length === 0 && (
+                      <div className="p-2 text-gray-500 text-center">
+                        No employees found
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Select Month
+                </label>
+                <select
+                  value={selectedMonth}
+                  onChange={(e) => setSelectedMonth(Number(e.target.value))}
+                  className="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                >
+                  <option value="1">January</option>
+                  <option value="2">February</option>
+                  <option value="3">March</option>
+                  <option value="4">April</option>
+                  <option value="5">May</option>
+                  <option value="6">June</option>
+                  <option value="7">July</option>
+                  <option value="8">August</option>
+                  <option value="9">September</option>
+                  <option value="10">October</option>
+                  <option value="11">November</option>
+                  <option value="12">December</option>
+                </select>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Select Year
+                </label>
+                <select
+                  value={selectedYear}
+                  onChange={(e) => setSelectedYear(Number(e.target.value))}
+                  className="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                >
+                  {[...Array(5)].map((_, i) => {
+                    const year = new Date().getFullYear() - i;
+                    return (
+                      <option key={year} value={year}>
+                        {year}
+                      </option>
+                    );
+                  })}
+                </select>
+              </div>
+              <div className="flex gap-3 mt-6">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIsReportModalOpen(false);
+                    setSelectedEmployee("");
+                    setEmployeeSearchQuery("");
+                    setShowEmployeeDropdown(false);
+                  }}
+                  className="flex-1 py-2 px-4 bg-gray-300 text-gray-700 rounded-md hover:bg-gray-400"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleDownloadReport}
+                  className="flex-1 py-2 px-4 bg-green-500 text-white rounded-md hover:bg-green-600"
+                >
+                  Download PDF
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
