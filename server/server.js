@@ -5,6 +5,7 @@ import cors from "cors";
 import authRouter from "./src/routes/auth.route.js";
 import { DBConnection } from "./src/config/db.js";
 import userRouter from "./src/routes/user.route.js";
+import leaveRouter from "./src/routes/leave.route.js";
 
 dotenv.config();
 
@@ -20,6 +21,7 @@ app.use(
 
 app.use("/api", authRouter);
 app.use("/api", userRouter);
+app.use("/api", leaveRouter);
 
 DBConnection();
 app.listen(3000, () => {

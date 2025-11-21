@@ -5,11 +5,19 @@ import {
   deleteLeaveRequest,
   rejectLeaveRequest,
   updateLeaveRequest,
+  getAllLeaveRequests,
 } from "../controllers/leave.controller.js";
 import { authorizedRoles } from "./../middleware/role.js";
 import { verifyToken } from "./../middleware/verifyToken.js";
 
 const leaveRouter = express.Router();
+
+leaveRouter.get(
+  "/admin/leave-requests",
+  verifyToken,
+  authorizedRoles("admin"),
+  getAllLeaveRequests
+);
 
 leaveRouter.post(
   "/leave",

@@ -1,5 +1,22 @@
 import Leave from "../models/Leave.model.js";
 
+export const getAllLeaveRequests = async (req, res) => {
+  try {
+    const leaves = await Leave.find().populate("userId", "name email position");
+    
+    res.status(200).json({
+      success: true,
+      data: leaves,
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: "Internal server error",
+      details: error.message,
+    });
+  }
+};
+
 // employee
 export const addLeaveRequest = async (req, res) => {
   try {

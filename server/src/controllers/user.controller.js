@@ -1,6 +1,23 @@
 import bcrypt from "bcryptjs";
 import User from "../models/User.model.js";
 
+export const getAllUsers = async (req, res) => {
+  try {
+    const users = await User.find().select("-password");
+    
+    res.status(200).json({
+      success: true,
+      data: users,
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: "Internal server error",
+      details: error.message,
+    });
+  }
+};
+
 export const addUser = async (req, res) => {
   try {
     const { name, email, password, role, position } = req.body;
