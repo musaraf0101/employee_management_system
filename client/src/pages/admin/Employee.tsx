@@ -8,6 +8,14 @@ const Employee = () => {
   const [filterPosition, setFilterPosition] = useState("");
   const [filterRole, setFilterRole] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [formData, setFormData] = useState({
+    name: "",
+    email: "",
+    password: "",
+    role: "",
+    position: "",
+  });
 
   useEffect(() => {
     const fetchEmployees = async () => {
@@ -43,6 +51,34 @@ const Employee = () => {
     return matchPosition && matchRole && matchSearch;
   });
 
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    try {
+      const response = await axios.post(
+        "http://localhost:3000/api/add-user",
+        formData,
+        { withCredentials: true }
+      );
+
+      setAllEmployees([...allEmployees, response.data]);
+
+      setFormData({
+        name: "",
+        email: "",
+        password: "",
+        role: "",
+        position: "",
+      });
+      setIsModalOpen(false);
+
+      alert("Employee added successfully!");
+    } catch (error: any) {
+      console.error("Error adding employee:", error);
+      alert(error.response?.data?.message || "Failed to add employee");
+    }
+  };
+
   return (
     <div className="flex min-h-screen bg-gray-100 w-full overflow-x-hidden">
       <AdminSidebar />
@@ -53,7 +89,10 @@ const Employee = () => {
               <h1 className="text-2xl md:text-3xl font-bold text-gray-800">
                 All Employees
               </h1>
-              <button className="w-full sm:w-auto py-2 px-4 bg-blue-500 text-white rounded-md hover:bg-blue-600">
+              <button
+                onClick={() => setIsModalOpen(true)}
+                className="w-full sm:w-auto py-2 px-4 bg-blue-500 text-white rounded-md hover:bg-blue-600"
+              >
                 Add Employee
               </button>
             </div>
@@ -124,70 +163,175 @@ const Employee = () => {
                 <div className="inline-block min-w-full align-middle">
                   <div className="overflow-hidden">
                     <table className="min-w-full border-collapse">
-                  <thead>
-                    <tr className="bg-gray-100">
-                      <th className="p-2 md:p-3 text-left border-b text-sm md:text-base">
-                        ID
-                      </th>
-                      <th className="p-2 md:p-3 text-left border-b text-sm md:text-base">
-                        Name
-                      </th>
-                      <th className="p-2 md:p-3 text-left border-b text-sm md:text-base">
-                        Email
-                      </th>
-                      <th className="p-2 md:p-3 text-left border-b text-sm md:text-base">
-                        Position
-                      </th>
-                      <th className="p-2 md:p-3 text-left border-b text-sm md:text-base">
-                        Actions
-                      </th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {filteredEmployees.length === 0 ? (
-                      <tr>
-                        <td
-                          colSpan={5}
-                          className="p-4 text-center text-gray-500"
-                        >
-                          No employees found
-                        </td>
-                      </tr>
-                    ) : (
-                      filteredEmployees.map((employee) => (
-                        <tr key={employee.id} className="hover:bg-gray-50">
-                          <td className="p-2 md:p-3 border-b text-sm md:text-base">
-                            {employee.id}
-                          </td>
-                          <td className="p-2 md:p-3 border-b text-sm md:text-base">
-                            {employee.name}
-                          </td>
-                          <td className="p-2 md:p-3 border-b text-sm md:text-base">
-                            {employee.email}
-                          </td>
-                          <td className="p-2 md:p-3 border-b text-sm md:text-base">
-                            {employee.position}
-                          </td>
-                          <td className="p-2 md:p-3 border-b text-sm md:text-base">
-                            <button className="text-blue-500 hover:text-blue-700 mr-2 md:mr-3 text-sm md:text-base">
-                              Edit
-                            </button>
-                            <button className="text-red-500 hover:text-red-700 text-sm md:text-base">
-                              Delete
-                            </button>
-                          </td>
+                      <thead>
+                        <tr className="bg-gray-100">
+                          <th className="p-2 md:p-3 text-left border-b text-sm md:text-base">
+                            ID
+                          </th>
+                          <th className="p-2 md:p-3 text-left border-b text-sm md:text-base">
+                            Name
+                          </th>
+                          <th className="p-2 md:p-3 text-left border-b text-sm md:text-base">
+                            Email
+                          </th>
+                          <th className="p-2 md:p-3 text-left border-b text-sm md:text-base">
+                            Position
+                          </th>
+                          <th className="p-2 md:p-3 text-left border-b text-sm md:text-base">
+                            Actions
+                          </th>
                         </tr>
-                      ))
-                    )}
-                    </tbody>
-                  </table>
+                      </thead>
+                      <tbody>
+                        {filteredEmployees.length === 0 ? (
+                          <tr>
+                            <td
+                              colSpan={5}
+                              className="p-4 text-center text-gray-500"
+                            >
+                              No employees found
+                            </td>
+                          </tr>
+                        ) : (
+                          filteredEmployees.map((employee) => (
+                            <tr key={employee.id} className="hover:bg-gray-50">
+                              <td className="p-2 md:p-3 border-b text-sm md:text-base">
+                                {employee.id}
+                              </td>
+                              <td className="p-2 md:p-3 border-b text-sm md:text-base">
+                                {employee.name}
+                              </td>
+                              <td className="p-2 md:p-3 border-b text-sm md:text-base">
+                                {employee.email}
+                              </td>
+                              <td className="p-2 md:p-3 border-b text-sm md:text-base">
+                                {employee.position}
+                              </td>
+                              <td className="p-2 md:p-3 border-b text-sm md:text-base">
+                                <button className="text-blue-500 hover:text-blue-700 mr-2 md:mr-3 text-sm md:text-base">
+                                  Edit
+                                </button>
+                                <button className="text-red-500 hover:text-red-700 text-sm md:text-base">
+                                  Delete
+                                </button>
+                              </td>
+                            </tr>
+                          ))
+                        )}
+                      </tbody>
+                    </table>
+                  </div>
                 </div>
               </div>
-            </div>
             )}
           </div>
         </div>
       </div>
+
+      {isModalOpen && (
+        <div className="fixed inset-0 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 w-full max-w-md shadow-xl">
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="text-2xl font-bold text-gray-800">Add Employee</h2>
+              <button
+                onClick={() => setIsModalOpen(false)}
+                className="text-gray-500 hover:text-gray-700 text-2xl"
+              >
+                ×
+              </button>
+            </div>
+            <form onSubmit={handleSubmit} className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Name
+                </label>
+                <input
+                  type="text"
+                  value={formData.name}
+                  onChange={(e) =>
+                    setFormData({ ...formData, name: e.target.value })
+                  }
+                  className="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  placeholder="Enter name"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Email
+                </label>
+                <input
+                  type="email"
+                  value={formData.email}
+                  onChange={(e) =>
+                    setFormData({ ...formData, email: e.target.value })
+                  }
+                  className="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  placeholder="Enter email"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Password
+                </label>
+                <input
+                  type="password"
+                  value={formData.password}
+                  onChange={(e) =>
+                    setFormData({ ...formData, password: e.target.value })
+                  }
+                  className="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  placeholder="Enter password"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Role
+                </label>
+                <select
+                  value={formData.role}
+                  onChange={(e) =>
+                    setFormData({ ...formData, role: e.target.value })
+                  }
+                  className="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                >
+                  <option value="">Select role</option>
+                  <option value="admin">Admin</option>
+                  <option value="employee">Employee</option>
+                </select>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Position
+                </label>
+                <input
+                  type="text"
+                  value={formData.position}
+                  onChange={(e) =>
+                    setFormData({ ...formData, position: e.target.value })
+                  }
+                  className="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  placeholder="Enter position"
+                />
+              </div>
+              <div className="flex gap-3 mt-6">
+                <button
+                  type="button"
+                  onClick={() => setIsModalOpen(false)}
+                  className="flex-1 py-2 px-4 bg-gray-300 text-gray-700 rounded-md hover:bg-gray-400"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="flex-1 py-2 px-4 bg-blue-500 text-white rounded-md hover:bg-blue-600"
+                >
+                  Add Employee
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
