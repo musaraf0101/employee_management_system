@@ -16,16 +16,16 @@ const userRouter = express.Router();
 
 userRouter.post(
   "/add-user",
+  verifyToken,
   authorizedRoles("admin"),
   validate(addUserSchema),
-  verifyToken,
   addUser
 );
 userRouter.put(
   "/update-user/:id",
+  verifyToken,
   authorizedRoles("admin", "employee"),
   validate(updateUserSchema),
-  verifyToken,
   updateUser
 );
 userRouter.delete(
