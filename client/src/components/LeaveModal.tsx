@@ -1,31 +1,53 @@
 import { useState } from "react";
+import axios from "axios";
 
 interface ModalProps {
   isOpen: boolean;
   onClose: () => void;
+  onSuccess?: () => void;
 }
 
-const LeaveModal = ({ isOpen, onClose }: ModalProps) => {
+const LeaveModal = ({ isOpen, onClose, onSuccess }: ModalProps) => {
   const [leaveType, setLeaveType] = useState("full_day");
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
   const [startTime, setStartTime] = useState("");
   const [endTime, setEndTime] = useState("");
   const [reason, setReason] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
 
   if (!isOpen) return null;
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setLoading(true);
+    setError("");
 
-    const leaveData =
-      leaveType === "full_day"
-        ? { leaveType, startDate, endDate, reason }
-        : { leaveType, startTime, endTime, reason };
+    try {
+      const leaveData =
+        leaveType === "full_day"
+          ? { leaveType, startDate, endDate, reason }
+          : { leaveType, startDate: new Date().toISOString().split('T')[0], startTime, endTime, reason };
 
-    console.log("Leave Request:", leaveData);
+      await axios.post("http://localhost:3000/api/leave", leaveData, {
+        withCredentials: true,
+      });
 
-    onClose();
+      setLeaveType("full_day");
+      setStartDate("");
+      setEndDate("");
+      setStartTime("");
+      setEndTime("");
+      setReason("");
+      
+      if (onSuccess) onSuccess();
+      onClose();
+    } catch (err: any) {
+      setError(err.response?.data?.message || "Failed to submit leave request");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -93,11 +115,15 @@ const LeaveModal = ({ isOpen, onClose }: ModalProps) => {
             rows={3}
             required
           />
+          {error && (
+            <div className="text-red-500 text-sm">{error}</div>
+          )}
           <button
             type="submit"
-            className="py-3 px-4 bg-linear-to-r from-blue-400 to-blue-600 text-white rounded-md cursor-pointer hover:from-blue-500 hover:to-blue-700 transition"
+            disabled={loading}
+            className="py-3 px-4 bg-linear-to-r from-blue-400 to-blue-600 text-white rounded-md cursor-pointer hover:from-blue-500 hover:to-blue-700 transition disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            Submit Request
+            {loading ? "Submitting..." : "Submit Request"}
           </button>
         </form>
       </div>

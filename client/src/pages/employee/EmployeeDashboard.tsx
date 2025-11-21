@@ -11,20 +11,23 @@ const EmployeeDashboard = () => {
   });
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    const fetchStats = async () => {
-      try {
-        const response = await axios.get("", {
-          withCredentials: true,
-        });
-        setStats(response.data);
-      } catch (error) {
-        console.error("Error fetching stats:", error);
-      } finally {
-        setLoading(false);
-      }
-    };
+  const fetchStats = async () => {
+    try {
+      const response = await axios.get("http://localhost:3000/api/employee/stats", {
+        withCredentials: true,
+      });
+      setStats({
+        myRequests: response.data.myRequests,
+        monthLeaveCount: response.data.monthLeaveCount,
+      });
+    } catch (error) {
+      console.error("Error fetching stats:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
+  useEffect(() => {
     fetchStats();
   }, []);
 
@@ -67,7 +70,11 @@ const EmployeeDashboard = () => {
           </div>
         </div>
       </div>
-      <LeaveModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} />
+      <LeaveModal 
+        isOpen={isModalOpen} 
+        onClose={() => setIsModalOpen(false)}
+        onSuccess={fetchStats}
+      />
     </div>
   );
 };
