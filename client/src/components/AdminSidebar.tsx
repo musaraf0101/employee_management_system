@@ -1,4 +1,5 @@
 import { useAuth } from "../context/AuthContext";
+import { Link, useLocation } from "react-router-dom";
 import {
   HiChartPie,
   HiUsers,
@@ -9,6 +10,9 @@ import {
 
 const AdminSidebar = () => {
   const { logout } = useAuth();
+  const location = useLocation();
+
+  const isActive = (path: string) => location.pathname === path;
 
   return (
     <aside className="w-64 bg-white shadow-md min-h-screen">
@@ -18,40 +22,48 @@ const AdminSidebar = () => {
       <nav className="p-4">
         <ul className="space-y-2">
           <li>
-            <a
-              href="#"
-              className="flex items-center gap-3 px-4 py-2 text-gray-700 bg-purple-100 rounded-lg hover:bg-purple-200"
+            <Link
+              to="/admin/dashboard"
+              className={`flex items-center gap-3 px-4 py-2 text-gray-700 rounded-lg hover:bg-purple-200 ${
+                isActive("/admin/dashboard") ? "bg-purple-100" : ""
+              }`}
             >
               <HiChartPie className="w-5 h-5" />
               <span>Dashboard</span>
-            </a>
+            </Link>
           </li>
           <li>
-            <a
-              href="#"
-              className="flex items-center gap-3 px-4 py-2 text-gray-700 rounded-lg hover:bg-gray-100"
+            <Link
+              to="/admin/employees"
+              className={`flex items-center gap-3 px-4 py-2 text-gray-700 rounded-lg hover:bg-gray-100 ${
+                isActive("/admin/employees") ? "bg-purple-100" : ""
+              }`}
             >
               <HiUsers className="w-5 h-5" />
               <span>Employees</span>
-            </a>
+            </Link>
           </li>
           <li>
-            <a
-              href="#"
-              className="flex items-center gap-3 px-4 py-2 text-gray-700 rounded-lg hover:bg-gray-100"
+            <Link
+              to="/admin/leave-requests"
+              className={`flex items-center gap-3 px-4 py-2 text-gray-700 rounded-lg hover:bg-gray-100 ${
+                isActive("/admin/leave-requests") ? "bg-purple-100" : ""
+              }`}
             >
               <HiDocumentText className="w-5 h-5" />
               <span>Leave Requests</span>
-            </a>
+            </Link>
           </li>
           <li>
-            <a
-              href="#"
-              className="flex items-center gap-3 px-4 py-2 text-gray-700 rounded-lg hover:bg-gray-100"
+            <Link
+              to="/admin/settings"
+              className={`flex items-center gap-3 px-4 py-2 text-gray-700 rounded-lg hover:bg-gray-100 ${
+                isActive("/admin/settings") ? "bg-purple-100" : ""
+              }`}
             >
               <HiCog className="w-5 h-5" />
               <span>Settings</span>
-            </a>
+            </Link>
           </li>
         </ul>
         <div className="mt-8 pt-8 border-t">

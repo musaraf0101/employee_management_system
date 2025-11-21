@@ -1,6 +1,7 @@
 import { useState } from "react";
-import EmployeeSidebar from "../components/EmployeeSidebar";
-import LeaveModal from "../components/LeaveModal";
+import EmployeeSidebar from "../../components/EmployeeSidebar";
+import LeaveModal from "../../components/LeaveModal";
+
 const EmployeeDashboard = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
 
