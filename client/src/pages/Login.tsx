@@ -85,6 +85,10 @@ const Login = () => {
         >
           {isLoading ? "Logging in..." : "Login"}
         </button>
+        <hr />
+        <p className="flex justify-center text-sm hover:text-blue-400 cursor-pointer">
+          Forgotten password?
+        </p>
       </form>
     </div>
   );
