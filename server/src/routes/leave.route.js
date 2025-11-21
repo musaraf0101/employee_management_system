@@ -6,11 +6,19 @@ import {
   rejectLeaveRequest,
   updateLeaveRequest,
   getAllLeaveRequests,
+  getEmployeeStats,
 } from "../controllers/leave.controller.js";
 import { authorizedRoles } from "./../middleware/role.js";
 import { verifyToken } from "./../middleware/verifyToken.js";
 
 const leaveRouter = express.Router();
+
+leaveRouter.get(
+  "/employee/stats",
+  verifyToken,
+  authorizedRoles("employee", "admin"),
+  getEmployeeStats
+);
 
 leaveRouter.get(
   "/admin/leave-requests",

@@ -2,7 +2,7 @@ import mongoose from "mongoose";
 
 const leaveSchema = new mongoose.Schema(
   {
-    user: {
+    userId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
       required: true,
@@ -37,7 +37,7 @@ const leaveSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-leaveSchema.index({ user: 1 });
+leaveSchema.index({ userId: 1 });
 
 const Leave = mongoose.model("Leave", leaveSchema);
 
