@@ -97,14 +97,12 @@ export const generateMonthlyLeaveReport = async (req, res) => {
     } else {
       doc.fontSize(12).text("No leave records found for this period.");
     }
-
-    // Footer
     doc
       .fontSize(10)
       .text(
         `Generated on: ${new Date().toLocaleString()}`,
         50,
-        doc.page.height - 50,
+        doc.page.height - 10,
         { align: "center" }
       );
     doc.end();
