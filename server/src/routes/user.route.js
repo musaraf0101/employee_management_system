@@ -10,7 +10,7 @@ import {
   addUserSchema,
   updateUserSchema,
 } from "../validation/userValidation.js";
-import { validate } from "./../middleware/valitator";
+import { validate } from "./../middleware/valitator.js";
 
 const userRouter = express.Router();
 
