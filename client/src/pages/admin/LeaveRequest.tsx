@@ -1,16 +1,10 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import AdminSidebar from "../../components/AdminSidebar";
+import axios from "axios";
 
 const LeaveRequest = () => {
-  // Sample leave request data - replace with API call
-  const allLeaveRequests = [
-    { id: 1, employeeName: "John Doe", leaveType: "full-day", reason: "Sick", startDate: "2024-01-15", endDate: "2024-01-17", status: "Pending" },
-    { id: 2, employeeName: "Jane Smith", leaveType: "short", reason: "Doctor Appointment", startTime: "10:00", endTime: "12:00", date: "2024-01-20", status: "Approved" },
-    { id: 3, employeeName: "Mike Johnson", leaveType: "full-day", reason: "Vacation", startDate: "2024-02-01", endDate: "2024-02-05", status: "Pending" },
-    { id: 4, employeeName: "Sarah Williams", leaveType: "short", reason: "Personal", startTime: "14:00", endTime: "16:00", date: "2024-01-18", status: "Rejected" },
-    { id: 5, employeeName: "Tom Brown", leaveType: "full-day", reason: "Family Emergency", startDate: "2024-01-25", endDate: "2024-01-26", status: "Approved" },
-  ];
-
+  const [allLeaveRequests, setAllLeaveRequests] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
   const [leaveTypeFilter, setLeaveTypeFilter] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
   const [startDateFilter, setStartDateFilter] = useState("");
@@ -18,25 +12,56 @@ const LeaveRequest = () => {
   const [startTimeFilter, setStartTimeFilter] = useState("");
   const [endTimeFilter, setEndTimeFilter] = useState("");
 
-  // Filter leave requests
-  const filteredRequests = allLeaveRequests.filter(request => {
-    const matchLeaveType = leaveTypeFilter === "" || request.leaveType === leaveTypeFilter;
-    const matchSearch = searchQuery === "" || 
+  useEffect(() => {
+    const fetchLeaveRequests = async () => {
+      try {
+        const response = await axios.get(
+          "http://localhost:3000/api/admin/leave-requests",
+          {
+            withCredentials: true,
+          }
+        );
+        setAllLeaveRequests(response.data);
+      } catch (error) {
+        console.error("Error fetching leave requests:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchLeaveRequests();
+  }, []);
+  const filteredRequests = allLeaveRequests.filter((request) => {
+    const matchLeaveType =
+      leaveTypeFilter === "" || request.leaveType === leaveTypeFilter;
+    const matchSearch =
+      searchQuery === "" ||
       request.employeeName.toLowerCase().includes(searchQuery.toLowerCase()) ||
       request.reason.toLowerCase().includes(searchQuery.toLowerCase());
-
-    // Date range filter for full-day leave
     let matchDateRange = true;
-    if (request.leaveType === "full-day" && (startDateFilter || endDateFilter)) {
-      if (startDateFilter && request.startDate && request.startDate < startDateFilter) matchDateRange = false;
-      if (endDateFilter && request.endDate && request.endDate > endDateFilter) matchDateRange = false;
+    if (
+      request.leaveType === "full-day" &&
+      (startDateFilter || endDateFilter)
+    ) {
+      if (
+        startDateFilter &&
+        request.startDate &&
+        request.startDate < startDateFilter
+      )
+        matchDateRange = false;
+      if (endDateFilter && request.endDate && request.endDate > endDateFilter)
+        matchDateRange = false;
     }
-
-    // Time range filter for short leave
     let matchTimeRange = true;
     if (request.leaveType === "short" && (startTimeFilter || endTimeFilter)) {
-      if (startTimeFilter && request.startTime && request.startTime < startTimeFilter) matchTimeRange = false;
-      if (endTimeFilter && request.endTime && request.endTime > endTimeFilter) matchTimeRange = false;
+      if (
+        startTimeFilter &&
+        request.startTime &&
+        request.startTime < startTimeFilter
+      )
+        matchTimeRange = false;
+      if (endTimeFilter && request.endTime && request.endTime > endTimeFilter)
+        matchTimeRange = false;
     }
 
     return matchLeaveType && matchSearch && matchDateRange && matchTimeRange;
@@ -52,16 +77,16 @@ const LeaveRequest = () => {
   };
 
   return (
-    <div className="flex min-h-screen bg-gray-100">
+    <div className="flex min-h-screen bg-gray-100 w-full overflow-x-hidden">
       <AdminSidebar />
-      <div className="flex-1 p-8">
-        <div className="max-w-7xl mx-auto">
-          <div className="bg-white rounded-lg shadow-md p-6">
+      <div className="flex-1 p-4 md:p-8 w-full md:w-auto pt-20 md:pt-8">
+        <div className="max-w-7xl mx-auto w-full">
+          <div className="bg-white rounded-lg shadow-md p-4 md:p-6 w-full">
             <div className="mb-6">
-              <h1 className="text-3xl font-bold text-gray-800">Leave Requests</h1>
+              <h1 className="text-2xl md:text-3xl font-bold text-gray-800">
+                Leave Requests
+              </h1>
             </div>
-
-            {/* Search Bar */}
             <div className="mb-4">
               <input
                 type="text"
@@ -71,8 +96,6 @@ const LeaveRequest = () => {
                 className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
             </div>
-
-            {/* Filter Section */}
             <div className="mb-6 space-y-4">
               <div className="flex gap-4">
                 <div className="flex-1">
@@ -83,7 +106,6 @@ const LeaveRequest = () => {
                     value={leaveTypeFilter}
                     onChange={(e) => {
                       setLeaveTypeFilter(e.target.value);
-                      // Clear date/time filters when switching
                       setStartDateFilter("");
                       setEndDateFilter("");
                       setStartTimeFilter("");
@@ -97,10 +119,8 @@ const LeaveRequest = () => {
                   </select>
                 </div>
               </div>
-
-              {/* Full Day Date Range Filter */}
               {leaveTypeFilter === "full-day" && (
-                <div className="flex gap-4">
+                <div className="flex flex-col sm:flex-row gap-4">
                   <div className="flex-1">
                     <label className="block text-sm font-medium text-gray-700 mb-1">
                       Start Date (From)
@@ -125,10 +145,8 @@ const LeaveRequest = () => {
                   </div>
                 </div>
               )}
-
-              {/* Short Leave Time Range Filter */}
               {leaveTypeFilter === "short" && (
-                <div className="flex gap-4">
+                <div className="flex flex-col sm:flex-row gap-4">
                   <div className="flex-1">
                     <label className="block text-sm font-medium text-gray-700 mb-1">
                       Start Time (From)
@@ -153,9 +171,12 @@ const LeaveRequest = () => {
                   </div>
                 </div>
               )}
-
-              {/* Clear Filters Button */}
-              {(leaveTypeFilter || searchQuery || startDateFilter || endDateFilter || startTimeFilter || endTimeFilter) && (
+              {(leaveTypeFilter ||
+                searchQuery ||
+                startDateFilter ||
+                endDateFilter ||
+                startTimeFilter ||
+                endTimeFilter) && (
                 <div>
                   <button
                     onClick={clearFilters}
@@ -167,77 +188,112 @@ const LeaveRequest = () => {
               )}
             </div>
 
-            {/* Table */}
-            <div className="overflow-x-auto">
-              <table className="w-full border-collapse">
-                <thead>
-                  <tr className="bg-gray-100">
-                    <th className="p-3 text-left border-b">ID</th>
-                    <th className="p-3 text-left border-b">Employee Name</th>
-                    <th className="p-3 text-left border-b">Leave Type</th>
-                    <th className="p-3 text-left border-b">Reason</th>
-                    <th className="p-3 text-left border-b">Date/Time</th>
-                    <th className="p-3 text-left border-b">Status</th>
-                    <th className="p-3 text-left border-b">Actions</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {filteredRequests.length === 0 ? (
-                    <tr>
-                      <td colSpan={7} className="p-4 text-center text-gray-500">
-                        No leave requests found
-                      </td>
+            {loading ? (
+              <div className="text-center py-8">Loading leave requests...</div>
+            ) : (
+              <div className="overflow-x-auto -mx-4 md:mx-0">
+                <div className="inline-block min-w-full align-middle">
+                  <div className="overflow-hidden">
+                    <table className="min-w-full border-collapse">
+                  <thead>
+                    <tr className="bg-gray-100">
+                      <th className="p-2 md:p-3 text-left border-b text-sm md:text-base">
+                        ID
+                      </th>
+                      <th className="p-2 md:p-3 text-left border-b text-sm md:text-base">
+                        Employee
+                      </th>
+                      <th className="p-2 md:p-3 text-left border-b text-sm md:text-base">
+                        Type
+                      </th>
+                      <th className="p-2 md:p-3 text-left border-b text-sm md:text-base">
+                        Reason
+                      </th>
+                      <th className="p-2 md:p-3 text-left border-b text-sm md:text-base">
+                        Date/Time
+                      </th>
+                      <th className="p-2 md:p-3 text-left border-b text-sm md:text-base">
+                        Status
+                      </th>
+                      <th className="p-2 md:p-3 text-left border-b text-sm md:text-base">
+                        Actions
+                      </th>
                     </tr>
-                  ) : (
-                    filteredRequests.map((request) => (
-                      <tr key={request.id} className="hover:bg-gray-50">
-                        <td className="p-3 border-b">{request.id}</td>
-                        <td className="p-3 border-b">{request.employeeName}</td>
-                        <td className="p-3 border-b">
-                          <span className={`px-2 py-1 rounded-full text-sm ${
-                            request.leaveType === "full-day" 
-                              ? "bg-blue-100 text-blue-800" 
-                              : "bg-purple-100 text-purple-800"
-                          }`}>
-                            {request.leaveType === "full-day" ? "Full Day" : "Short Leave"}
-                          </span>
-                        </td>
-                        <td className="p-3 border-b">{request.reason}</td>
-                        <td className="p-3 border-b">
-                          {request.leaveType === "full-day" 
-                            ? `${request.startDate} to ${request.endDate}`
-                            : `${request.date} (${request.startTime} - ${request.endTime})`
-                          }
-                        </td>
-                        <td className="p-3 border-b">
-                          <span className={`px-2 py-1 rounded-full text-sm ${
-                            request.status === "Approved" 
-                              ? "bg-green-100 text-green-800" 
-                              : request.status === "Rejected"
-                              ? "bg-red-100 text-red-800"
-                              : "bg-yellow-100 text-yellow-800"
-                          }`}>
-                            {request.status}
-                          </span>
-                        </td>
-                        <td className="p-3 border-b">
-                          {request.status === "Pending" && (
-                            <>
-                              <button className="text-green-500 hover:text-green-700 mr-3">
-                                Approve
-                              </button>
-                              <button className="text-red-500 hover:text-red-700">
-                                Reject
-                              </button>
-                            </>
-                          )}
+                  </thead>
+                  <tbody>
+                    {filteredRequests.length === 0 ? (
+                      <tr>
+                        <td
+                          colSpan={7}
+                          className="p-4 text-center text-gray-500"
+                        >
+                          No leave requests found
                         </td>
                       </tr>
-                    ))
-                  )}
-                </tbody>
-              </table>
-            </div>
+                    ) : (
+                      filteredRequests.map((request) => (
+                        <tr key={request.id} className="hover:bg-gray-50">
+                          <td className="p-2 md:p-3 border-b text-sm md:text-base">
+                            {request.id}
+                          </td>
+                          <td className="p-2 md:p-3 border-b text-sm md:text-base">
+                            {request.employeeName}
+                          </td>
+                          <td className="p-2 md:p-3 border-b text-sm md:text-base">
+                            <span
+                              className={`px-2 py-1 rounded-full text-sm ${
+                                request.leaveType === "full-day"
+                                  ? "bg-blue-100 text-blue-800"
+                                  : "bg-purple-100 text-purple-800"
+                              }`}
+                            >
+                              {request.leaveType === "full-day"
+                                ? "Full Day"
+                                : "Short Leave"}
+                            </span>
+                          </td>
+                          <td className="p-2 md:p-3 border-b text-sm md:text-base">
+                            {request.reason}
+                          </td>
+                          <td className="p-2 md:p-3 border-b text-sm md:text-base">
+                            {request.leaveType === "full-day"
+                              ? `${request.startDate} to ${request.endDate}`
+                              : `${request.date} (${request.startTime} - ${request.endTime})`}
+                          </td>
+                          <td className="p-2 md:p-3 border-b text-sm md:text-base">
+                            <span
+                              className={`px-2 py-1 rounded-full text-sm ${
+                                request.status === "Approved"
+                                  ? "bg-green-100 text-green-800"
+                                  : request.status === "Rejected"
+                                  ? "bg-red-100 text-red-800"
+                                  : "bg-yellow-100 text-yellow-800"
+                              }`}
+                            >
+                              {request.status}
+                            </span>
+                          </td>
+                          <td className="p-2 md:p-3 border-b text-sm md:text-base">
+                            {request.status === "Pending" && (
+                              <>
+                                <button className="text-green-500 hover:text-green-700 mr-2 md:mr-3 text-sm md:text-base">
+                                  Approve
+                                </button>
+                                <button className="text-red-500 hover:text-red-700 text-sm md:text-base">
+                                  Reject
+                                </button>
+                              </>
+                            )}
+                          </td>
+                        </tr>
+                      ))
+                    )}
+                  </tbody>
+                </table>
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
         </div>
       </div>

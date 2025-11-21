@@ -1,48 +1,33 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import AdminSidebar from "../../components/AdminSidebar";
+import axios from "axios";
 
 const Employee = () => {
-  const allEmployees = [
-    {
-      id: 1,
-      name: "John Doe",
-      email: "john@example.com",
-      position: "Developer",
-      role: "employee",
-    },
-    {
-      id: 2,
-      name: "Jane Smith",
-      email: "jane@example.com",
-      position: "Designer",
-      role: "employee",
-    },
-    {
-      id: 3,
-      name: "Mike Johnson",
-      email: "mike@example.com",
-      position: "Manager",
-      role: "admin",
-    },
-    {
-      id: 4,
-      name: "Sarah Williams",
-      email: "sarah@example.com",
-      position: "Developer",
-      role: "employee",
-    },
-    {
-      id: 5,
-      name: "Tom Brown",
-      email: "tom@example.com",
-      position: "Team Lead",
-      role: "admin",
-    },
-  ];
-
+  const [allEmployees, setAllEmployees] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
   const [filterPosition, setFilterPosition] = useState("");
   const [filterRole, setFilterRole] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
+
+  useEffect(() => {
+    const fetchEmployees = async () => {
+      try {
+        const response = await axios.get(
+          "http://localhost:3000/api/admin/employees",
+          {
+            withCredentials: true,
+          }
+        );
+        setAllEmployees(response.data);
+      } catch (error) {
+        console.error("Error fetching employees:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchEmployees();
+  }, []);
 
   const positions = [...new Set(allEmployees.map((emp) => emp.position))];
   const roles = [...new Set(allEmployees.map((emp) => emp.role))];
@@ -59,29 +44,29 @@ const Employee = () => {
   });
 
   return (
-    <div className="flex min-h-screen bg-gray-100">
+    <div className="flex min-h-screen bg-gray-100 w-full overflow-x-hidden">
       <AdminSidebar />
-      <div className="flex-1 p-8">
-        <div className="max-w-7xl mx-auto">
-          <div className="bg-white rounded-lg shadow-md p-6">
-            <div className="flex justify-between items-center mb-6">
-              <h1 className="text-3xl font-bold text-gray-800">
+      <div className="flex-1 p-4 md:p-8 w-full md:w-auto pt-20 md:pt-8">
+        <div className="max-w-7xl mx-auto w-full">
+          <div className="bg-white rounded-lg shadow-md p-4 md:p-6 w-full">
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
+              <h1 className="text-2xl md:text-3xl font-bold text-gray-800">
                 All Employees
               </h1>
-              <button className="py-2 px-4 bg-blue-500 text-white rounded-md hover:bg-blue-600">
+              <button className="w-full sm:w-auto py-2 px-4 bg-blue-500 text-white rounded-md hover:bg-blue-600">
                 Add Employee
               </button>
             </div>
             <div className="mb-4">
               <input
                 type="text"
-                placeholder="Search by name, email, or department..."
+                placeholder="Search by name, email..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
             </div>
-            <div className="flex gap-4 mb-6">
+            <div className="flex flex-col sm:flex-row gap-4 mb-6">
               <div className="flex-1">
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   Filter by Position
@@ -124,7 +109,7 @@ const Employee = () => {
                       setFilterRole("");
                       setSearchQuery("");
                     }}
-                    className="py-2 px-4 bg-gray-300 text-gray-700 rounded-md hover:bg-gray-400"
+                    className="w-full sm:w-auto py-2 px-4 bg-gray-300 text-gray-700 rounded-md hover:bg-gray-400"
                   >
                     Clear All
                   </button>
@@ -132,45 +117,74 @@ const Employee = () => {
               )}
             </div>
 
-            <div className="overflow-x-auto">
-              <table className="w-full border-collapse">
-                <thead>
-                  <tr className="bg-gray-100">
-                    <th className="p-3 text-left border-b">ID</th>
-                    <th className="p-3 text-left border-b">Name</th>
-                    <th className="p-3 text-left border-b">Email</th>
-                    <th className="p-3 text-left border-b">Position</th>
-                    <th className="p-3 text-left border-b">Actions</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {filteredEmployees.length === 0 ? (
-                    <tr>
-                      <td colSpan={7} className="p-4 text-center text-gray-500">
-                        No employees found
-                      </td>
+            {loading ? (
+              <div className="text-center py-8">Loading employees...</div>
+            ) : (
+              <div className="overflow-x-auto -mx-4 md:mx-0">
+                <div className="inline-block min-w-full align-middle">
+                  <div className="overflow-hidden">
+                    <table className="min-w-full border-collapse">
+                  <thead>
+                    <tr className="bg-gray-100">
+                      <th className="p-2 md:p-3 text-left border-b text-sm md:text-base">
+                        ID
+                      </th>
+                      <th className="p-2 md:p-3 text-left border-b text-sm md:text-base">
+                        Name
+                      </th>
+                      <th className="p-2 md:p-3 text-left border-b text-sm md:text-base">
+                        Email
+                      </th>
+                      <th className="p-2 md:p-3 text-left border-b text-sm md:text-base">
+                        Position
+                      </th>
+                      <th className="p-2 md:p-3 text-left border-b text-sm md:text-base">
+                        Actions
+                      </th>
                     </tr>
-                  ) : (
-                    filteredEmployees.map((employee) => (
-                      <tr key={employee.id} className="hover:bg-gray-50">
-                        <td className="p-3 border-b">{employee.id}</td>
-                        <td className="p-3 border-b">{employee.name}</td>
-                        <td className="p-3 border-b">{employee.email}</td>
-                        <td className="p-3 border-b">{employee.position}</td>
-                        <td className="p-3 border-b">
-                          <button className="text-blue-500 hover:text-blue-700 mr-3">
-                            Edit
-                          </button>
-                          <button className="text-red-500 hover:text-red-700">
-                            Delete
-                          </button>
+                  </thead>
+                  <tbody>
+                    {filteredEmployees.length === 0 ? (
+                      <tr>
+                        <td
+                          colSpan={5}
+                          className="p-4 text-center text-gray-500"
+                        >
+                          No employees found
                         </td>
                       </tr>
-                    ))
-                  )}
-                </tbody>
-              </table>
+                    ) : (
+                      filteredEmployees.map((employee) => (
+                        <tr key={employee.id} className="hover:bg-gray-50">
+                          <td className="p-2 md:p-3 border-b text-sm md:text-base">
+                            {employee.id}
+                          </td>
+                          <td className="p-2 md:p-3 border-b text-sm md:text-base">
+                            {employee.name}
+                          </td>
+                          <td className="p-2 md:p-3 border-b text-sm md:text-base">
+                            {employee.email}
+                          </td>
+                          <td className="p-2 md:p-3 border-b text-sm md:text-base">
+                            {employee.position}
+                          </td>
+                          <td className="p-2 md:p-3 border-b text-sm md:text-base">
+                            <button className="text-blue-500 hover:text-blue-700 mr-2 md:mr-3 text-sm md:text-base">
+                              Edit
+                            </button>
+                            <button className="text-red-500 hover:text-red-700 text-sm md:text-base">
+                              Delete
+                            </button>
+                          </td>
+                        </tr>
+                      ))
+                    )}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
             </div>
+            )}
           </div>
         </div>
       </div>
