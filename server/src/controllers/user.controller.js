@@ -65,7 +65,7 @@ export const updateUser = async (req, res) => {
     const { id } = req.params;
     const { name, email, password, position } = req.body;
 
-    const existUser = await User.findOne(id);
+    const existUser = await User.findById(id);
 
     if (!existUser) {
       return res.status(404).json({
