@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import AdminSidebar from "../../components/AdminSidebar";
 import axios from "axios";
+import toast from "react-hot-toast";
 
 const Employee = () => {
   const [allEmployees, setAllEmployees] = useState<any[]>([]);
@@ -9,6 +10,10 @@ const Employee = () => {
   const [filterRole, setFilterRole] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isEditMode, setIsEditMode] = useState(false);
+  const [editingEmployeeId, setEditingEmployeeId] = useState<string | null>(
+    null
+  );
   const [formData, setFormData] = useState({
     name: "",
     email: "",
@@ -26,9 +31,22 @@ const Employee = () => {
             withCredentials: true,
           }
         );
-        setAllEmployees(response.data);
-      } catch (error) {
+
+        console.log("Full response:", response);
+        console.log("Response status:", response.status);
+        console.log("Response data:", response.data);
+        
+        const employees = response.data.data || response.data;  
+        setAllEmployees(employees);
+        toast.success(`Loaded ${employees.length} employees`);
+      } catch (error: any) {
         console.error("Error fetching employees:", error);
+        console.error("Error response:", error.response);
+        console.error("Error status:", error.response?.status);
+        console.error("Error data:", error.response?.data);
+        
+        const errorMsg = error.response?.data?.message || error.message || "Failed to fetch employees";
+        toast.error(errorMsg);
       } finally {
         setLoading(false);
       }
@@ -51,35 +69,77 @@ const Employee = () => {
     return matchPosition && matchRole && matchSearch;
   });
 
+  const handleOpenAddModal = () => {
+    setIsEditMode(false);
+    setEditingEmployeeId(null);
+    setFormData({
+      name: "",
+      email: "",
+      password: "",
+      role: "",
+      position: "",
+    });
+    setIsModalOpen(true);
+  };
+
+  const handleOpenEditModal = (employee: any) => {
+    setIsEditMode(true);
+    setEditingEmployeeId(employee._id);
+    setFormData({
+      name: employee.name,
+      email: employee.email,
+      password: "",
+      role: employee.role,
+      position: employee.position,
+    });
+    setIsModalOpen(true);
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-
-    // Validation
-    if (!formData.name || !formData.email || !formData.password || !formData.role) {
-      alert("Please fill all required fields");
-      return;
+    if (!formData.name || !formData.email || !formData.role) {
+      return toast.error("Name, email, and role are required");
     }
 
-    if (formData.password.length < 8) {
-      alert("Password must be at least 8 characters");
-      return;
+    if (!isEditMode && (!formData.password || formData.password.length < 8)) {
+      return toast.error("Password must be at least 8 characters");
+    }
+
+    if (isEditMode && formData.password && formData.password.length < 8) {
+      return toast.error("Password must be at least 8 characters");
     }
 
     try {
-      console.log("Sending data:", formData);
-      
-      await axios.post(
-        "http://localhost:3000/api/add-user",
-        formData,
-        { withCredentials: true }
-      );
+      if (isEditMode) {
+        const updateData: any = {
+          name: formData.name,
+          email: formData.email,
+          position: formData.position,
+        };
 
-      // Refresh the employee list
+        if (formData.password) {
+          updateData.password = formData.password;
+        }
+
+        await axios.put(
+          `http://localhost:3000/api/update-user/${editingEmployeeId}`,
+          updateData,
+          { withCredentials: true }
+        );
+
+        toast.success("Employee updated successfully!");
+      } else {
+        await axios.post("http://localhost:3000/api/add-user", formData, {
+          withCredentials: true,
+        });
+
+        toast.success("Employee added successfully!");
+      }
       const updatedResponse = await axios.get(
         "http://localhost:3000/api/admin/employees",
         { withCredentials: true }
       );
-      setAllEmployees(updatedResponse.data);
+      setAllEmployees(updatedResponse.data.data || updatedResponse.data);
 
       setFormData({
         name: "",
@@ -89,20 +149,63 @@ const Employee = () => {
         position: "",
       });
       setIsModalOpen(false);
-
-      alert("Employee added successfully!");
+      setIsEditMode(false);
+      setEditingEmployeeId(null);
     } catch (error: any) {
-      console.error("Full error:", error);
-      console.error("Error response:", error.response);
-      console.error("Error status:", error.response?.status);
-      console.error("Error data:", error.response?.data);
-      
-      const errorMsg = error.response?.data?.message || 
-                       error.response?.data?.error || 
-                       error.message || 
-                       "Failed to add employee";
-      alert(errorMsg);
+      const errorMsg =
+        error.response?.data?.message ||
+        error.response?.data?.error ||
+        error.message ||
+        `Failed to ${isEditMode ? "update" : "add"} employee`;
+      toast.error(errorMsg);
     }
+  };
+
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [employeeToDelete, setEmployeeToDelete] = useState<{
+    id: string;
+    name: string;
+  } | null>(null);
+
+  const handleOpenDeleteModal = (employeeId: string, employeeName: string) => {
+    setEmployeeToDelete({ id: employeeId, name: employeeName });
+    setIsDeleteModalOpen(true);
+  };
+
+  const handleConfirmDelete = async () => {
+    if (!employeeToDelete) return;
+
+    try {
+      await axios.delete(
+        `http://localhost:3000/api/user-delete/${employeeToDelete.id}`,
+        {
+          withCredentials: true,
+        }
+      );
+
+      toast.success("Employee deleted successfully!");
+
+      const updatedResponse = await axios.get(
+        "http://localhost:3000/api/admin/employees",
+        { withCredentials: true }
+      );
+      setAllEmployees(updatedResponse.data.data || updatedResponse.data);
+
+      setIsDeleteModalOpen(false);
+      setEmployeeToDelete(null);
+    } catch (error: any) {
+      const errorMsg =
+        error.response?.data?.message ||
+        error.response?.data?.error ||
+        error.message ||
+        "Failed to delete employee";
+      toast.error(errorMsg);
+    }
+  };
+
+  const handleCancelDelete = () => {
+    setIsDeleteModalOpen(false);
+    setEmployeeToDelete(null);
   };
 
   return (
@@ -116,7 +219,7 @@ const Employee = () => {
                 All Employees
               </h1>
               <button
-                onClick={() => setIsModalOpen(true)}
+                onClick={handleOpenAddModal}
                 className="w-full sm:w-auto py-2 px-4 bg-blue-500 text-white rounded-md hover:bg-blue-600"
               >
                 Add Employee
@@ -192,9 +295,6 @@ const Employee = () => {
                       <thead>
                         <tr className="bg-gray-100">
                           <th className="p-2 md:p-3 text-left border-b text-sm md:text-base">
-                            ID
-                          </th>
-                          <th className="p-2 md:p-3 text-left border-b text-sm md:text-base">
                             Name
                           </th>
                           <th className="p-2 md:p-3 text-left border-b text-sm md:text-base">
@@ -220,10 +320,7 @@ const Employee = () => {
                           </tr>
                         ) : (
                           filteredEmployees.map((employee) => (
-                            <tr key={employee.id} className="hover:bg-gray-50">
-                              <td className="p-2 md:p-3 border-b text-sm md:text-base">
-                                {employee.id}
-                              </td>
+                            <tr key={employee._id} className="hover:bg-gray-50">
                               <td className="p-2 md:p-3 border-b text-sm md:text-base">
                                 {employee.name}
                               </td>
@@ -234,10 +331,21 @@ const Employee = () => {
                                 {employee.position}
                               </td>
                               <td className="p-2 md:p-3 border-b text-sm md:text-base">
-                                <button className="text-blue-500 hover:text-blue-700 mr-2 md:mr-3 text-sm md:text-base">
+                                <button
+                                  onClick={() => handleOpenEditModal(employee)}
+                                  className="text-blue-500 hover:text-blue-700 mr-2 md:mr-3 text-sm md:text-base"
+                                >
                                   Edit
                                 </button>
-                                <button className="text-red-500 hover:text-red-700 text-sm md:text-base">
+                                <button
+                                  onClick={() =>
+                                    handleOpenDeleteModal(
+                                      employee._id,
+                                      employee.name
+                                    )
+                                  }
+                                  className="text-red-500 hover:text-red-700 text-sm md:text-base"
+                                >
                                   Delete
                                 </button>
                               </td>
@@ -254,13 +362,47 @@ const Employee = () => {
         </div>
       </div>
 
+      {isDeleteModalOpen && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 w-full max-w-sm shadow-xl">
+            <h2 className="text-xl font-bold text-gray-800 mb-4">
+              Confirm Delete
+            </h2>
+            <p className="text-gray-600 mb-6">
+              Are you sure you want to delete{" "}
+              <span className="font-semibold">{employeeToDelete?.name}</span>?
+            </p>
+            <div className="flex gap-3">
+              <button
+                onClick={handleCancelDelete}
+                className="flex-1 py-2 px-4 bg-gray-300 text-gray-700 rounded-md hover:bg-gray-400"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleConfirmDelete}
+                className="flex-1 py-2 px-4 bg-red-500 text-white rounded-md hover:bg-red-600"
+              >
+                Delete
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {isModalOpen && (
-        <div className="fixed inset-0 flex items-center justify-center z-50">
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white rounded-lg p-6 w-full max-w-md shadow-xl">
             <div className="flex justify-between items-center mb-4">
-              <h2 className="text-2xl font-bold text-gray-800">Add Employee</h2>
+              <h2 className="text-2xl font-bold text-gray-800">
+                {isEditMode ? "Edit Employee" : "Add Employee"}
+              </h2>
               <button
-                onClick={() => setIsModalOpen(false)}
+                onClick={() => {
+                  setIsModalOpen(false);
+                  setIsEditMode(false);
+                  setEditingEmployeeId(null);
+                }}
                 className="text-gray-500 hover:text-gray-700 text-2xl"
               >
                 ×
@@ -279,7 +421,6 @@ const Employee = () => {
                   }
                   className="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                   placeholder="Enter name"
-                  required
                 />
               </div>
               <div>
@@ -287,19 +428,18 @@ const Employee = () => {
                   Email
                 </label>
                 <input
-                  type="email"
+                  type="text"
                   value={formData.email}
                   onChange={(e) =>
                     setFormData({ ...formData, email: e.target.value })
                   }
                   className="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                   placeholder="Enter email"
-                  required
                 />
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Password
+                  Password {isEditMode && "(leave blank to keep current)"}
                 </label>
                 <input
                   type="password"
@@ -308,9 +448,11 @@ const Employee = () => {
                     setFormData({ ...formData, password: e.target.value })
                   }
                   className="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  placeholder="Enter password"
-                  required
-                  minLength={8}
+                  placeholder={
+                    isEditMode
+                      ? "Enter new password (optional)"
+                      : "Enter password"
+                  }
                 />
               </div>
               <div>
@@ -347,7 +489,11 @@ const Employee = () => {
               <div className="flex gap-3 mt-6">
                 <button
                   type="button"
-                  onClick={() => setIsModalOpen(false)}
+                  onClick={() => {
+                    setIsModalOpen(false);
+                    setIsEditMode(false);
+                    setEditingEmployeeId(null);
+                  }}
                   className="flex-1 py-2 px-4 bg-gray-300 text-gray-700 rounded-md hover:bg-gray-400"
                 >
                   Cancel
@@ -356,7 +502,7 @@ const Employee = () => {
                   type="submit"
                   className="flex-1 py-2 px-4 bg-blue-500 text-white rounded-md hover:bg-blue-600"
                 >
-                  Add Employee
+                  {isEditMode ? "Update Employee" : "Add Employee"}
                 </button>
               </div>
             </form>
