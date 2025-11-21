@@ -149,6 +149,50 @@ const LeaveRequest = () => {
     setEndTimeFilter("");
   };
 
+  const handleApprove = async (requestId: string) => {
+    try {
+      await axios.put(
+        `http://localhost:3000/api/admin/leave-requests/${requestId}/approve`,
+        {},
+        { withCredentials: true }
+      );
+      
+      setAllLeaveRequests((prev) =>
+        prev.map((req) =>
+          req._id === requestId ? { ...req, status: "Approved" } : req
+        )
+      );
+      
+      toast.success("Leave request approved successfully!");
+    } catch (error: any) {
+      console.error("Error approving leave request:", error);
+      const errorMsg = error.response?.data?.message || "Failed to approve leave request";
+      toast.error(errorMsg);
+    }
+  };
+
+  const handleReject = async (requestId: string) => {
+    try {
+      await axios.put(
+        `http://localhost:3000/api/admin/leave-requests/${requestId}/reject`,
+        {},
+        { withCredentials: true }
+      );
+      
+      setAllLeaveRequests((prev) =>
+        prev.map((req) =>
+          req._id === requestId ? { ...req, status: "Rejected" } : req
+        )
+      );
+      
+      toast.success("Leave request rejected successfully!");
+    } catch (error: any) {
+      console.error("Error rejecting leave request:", error);
+      const errorMsg = error.response?.data?.message || "Failed to reject leave request";
+      toast.error(errorMsg);
+    }
+  };
+
   return (
     <div className="flex min-h-screen bg-gray-100 w-full overflow-x-hidden">
       <AdminSidebar />
@@ -347,16 +391,30 @@ const LeaveRequest = () => {
                             </span>
                           </td>
                           <td className="p-2 md:p-3 border-b text-sm md:text-base">
-                            {request.status === "Pending" && (
-                              <>
-                                <button className="text-green-500 hover:text-green-700 mr-2 md:mr-3 text-sm md:text-base">
-                                  Approve
-                                </button>
-                                <button className="text-red-500 hover:text-red-700 text-sm md:text-base">
-                                  Reject
-                                </button>
-                              </>
-                            )}
+                            <div className="flex gap-2">
+                              <button 
+                                onClick={() => handleApprove(request._id)}
+                                disabled={request.status !== "Pending" && request.status !== "pending"}
+                                className={`px-3 py-1 rounded ${
+                                  request.status === "Pending" || request.status === "pending"
+                                    ? "bg-green-500 text-white hover:bg-green-600"
+                                    : "bg-gray-300 text-gray-500 cursor-not-allowed"
+                                }`}
+                              >
+                                Approve
+                              </button>
+                              <button 
+                                onClick={() => handleReject(request._id)}
+                                disabled={request.status !== "Pending" && request.status !== "pending"}
+                                className={`px-3 py-1 rounded ${
+                                  request.status === "Pending" || request.status === "pending"
+                                    ? "bg-red-500 text-white hover:bg-red-600"
+                                    : "bg-gray-300 text-gray-500 cursor-not-allowed"
+                                }`}
+                              >
+                                Reject
+                              </button>
+                            </div>
                           </td>
                         </tr>
                       ))
