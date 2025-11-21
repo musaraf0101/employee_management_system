@@ -24,6 +24,24 @@ const LeaveModal = ({ isOpen, onClose, onSuccess }: ModalProps) => {
     setLoading(true);
     setError("");
 
+    // Validate short leave times
+    if (leaveType === "short") {
+      if (startTime && endTime && startTime >= endTime) {
+        setError("End time must be after start time");
+        setLoading(false);
+        return;
+      }
+    }
+
+    // Validate full day dates
+    if (leaveType === "full_day") {
+      if (startDate && endDate && startDate > endDate) {
+        setError("End date must be after or equal to start date");
+        setLoading(false);
+        return;
+      }
+    }
+
     try {
       const leaveData =
         leaveType === "full_day"
@@ -71,40 +89,72 @@ const LeaveModal = ({ isOpen, onClose, onSuccess }: ModalProps) => {
             <option value="full_day">Full Day Leave</option>
           </select>
           {leaveType === "full_day" ? (
-            <div className="flex gap-3">
-              <input
-                type="date"
-                value={startDate}
-                onChange={(e) => setStartDate(e.target.value)}
-                className="p-2 border rounded-md flex-1 focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                required
-              />
-
-              <input
-                type="date"
-                value={endDate}
-                onChange={(e) => setEndDate(e.target.value)}
-                className="p-2 border rounded-md flex-1 focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                required
-              />
+            <div className="flex flex-col gap-2">
+              <div className="flex gap-3">
+                <div className="flex-1">
+                  <label className="block text-sm text-gray-600 mb-1">Start Date</label>
+                  <input
+                    type="date"
+                    value={startDate}
+                    onChange={(e) => {
+                      setStartDate(e.target.value);
+                      if (error && error.includes("date")) setError("");
+                    }}
+                    className="p-2 border rounded-md w-full focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                    required
+                  />
+                </div>
+                <div className="flex-1">
+                  <label className="block text-sm text-gray-600 mb-1">End Date</label>
+                  <input
+                    type="date"
+                    value={endDate}
+                    onChange={(e) => {
+                      setEndDate(e.target.value);
+                      if (error && error.includes("date")) setError("");
+                    }}
+                    className="p-2 border rounded-md w-full focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                    required
+                  />
+                </div>
+              </div>
+              {startDate && endDate && startDate > endDate && (
+                <p className="text-red-500 text-sm">End date must be after or equal to start date</p>
+              )}
             </div>
           ) : (
-            <div className="flex gap-3">
-              <input
-                type="time"
-                value={startTime}
-                onChange={(e) => setStartTime(e.target.value)}
-                className="p-2 border rounded-md flex-1 focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                required
-              />
-
-              <input
-                type="time"
-                value={endTime}
-                onChange={(e) => setEndTime(e.target.value)}
-                className="p-2 border rounded-md flex-1 focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                required
-              />
+            <div className="flex flex-col gap-2">
+              <div className="flex gap-3">
+                <div className="flex-1">
+                  <label className="block text-sm text-gray-600 mb-1">Start Time</label>
+                  <input
+                    type="time"
+                    value={startTime}
+                    onChange={(e) => {
+                      setStartTime(e.target.value);
+                      if (error && error.includes("time")) setError("");
+                    }}
+                    className="p-2 border rounded-md w-full focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                    required
+                  />
+                </div>
+                <div className="flex-1">
+                  <label className="block text-sm text-gray-600 mb-1">End Time</label>
+                  <input
+                    type="time"
+                    value={endTime}
+                    onChange={(e) => {
+                      setEndTime(e.target.value);
+                      if (error && error.includes("time")) setError("");
+                    }}
+                    className="p-2 border rounded-md w-full focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                    required
+                  />
+                </div>
+              </div>
+              {startTime && endTime && startTime >= endTime && (
+                <p className="text-red-500 text-sm">End time must be after start time</p>
+              )}
             </div>
           )}
           <textarea
