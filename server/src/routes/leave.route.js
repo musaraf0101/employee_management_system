@@ -7,6 +7,7 @@ import {
   updateLeaveRequest,
   getAllLeaveRequests,
   getEmployeeStats,
+  getAdminDashboardStats,
 } from "../controllers/leave.controller.js";
 import { authorizedRoles } from "./../middleware/role.js";
 import { verifyToken } from "./../middleware/verifyToken.js";
@@ -18,6 +19,13 @@ leaveRouter.get(
   verifyToken,
   authorizedRoles("employee", "admin"),
   getEmployeeStats
+);
+
+leaveRouter.get(
+  "/admin/dashboard-stats",
+  verifyToken,
+  authorizedRoles("admin"),
+  getAdminDashboardStats
 );
 
 leaveRouter.get(

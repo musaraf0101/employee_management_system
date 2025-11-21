@@ -36,6 +36,46 @@ export const getEmployeeStats = async (req, res) => {
   }
 };
 
+export const getAdminDashboardStats = async (req, res) => {
+  try {
+    const User = (await import("../models/User.model.js")).default;
+    
+    const totalEmployees = await User.countDocuments({ role: "employee" });
+
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const tomorrow = new Date(today);
+    tomorrow.setDate(tomorrow.getDate() + 1);
+
+    const totalLeaveEmployees = await Leave.countDocuments({
+      status: { $in: ["Approved", "approved"] },
+      startDate: { $lte: tomorrow },
+      $or: [
+        { endDate: { $gte: today } },
+        { endDate: null }
+      ]
+    });
+    const pendingRequests = await Leave.countDocuments({
+      status: { $in: ["Pending", "pending"] }
+    });
+
+    res.status(200).json({
+      success: true,
+      data: {
+        totalEmployees,
+        totalLeaveEmployees,
+        pendingRequests,
+      },
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: "Internal server error",
+      details: error.message,
+    });
+  }
+};
+
 export const getAllLeaveRequests = async (req, res) => {
   try {
     const leaves = await Leave.find().populate("userId", "name email position");
