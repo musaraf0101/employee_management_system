@@ -2,6 +2,7 @@ import { Route, Routes } from "react-router-dom";
 import Login from "./pages/Login";
 import AdminDashboard from "./pages/admin/AdminDashboard";
 import EmployeeDashboard from "./pages/employee/EmployeeDashboard";
+import UpdateProfile from "./pages/employee/UpdateProfile";
 import { AuthProvider } from "./context/AuthContext";
 import ProtectedRoute from "./components/ProtectedRoute";
 import Employee from "./pages/admin/Employee";
@@ -46,10 +47,10 @@ const App = () => {
             }
           />
           <Route
-            path="/employee/update"
+            path="/employee/update/:id?"
             element={
               <ProtectedRoute allowedRole="employee">
-                <EmployeeDashboard />
+                <UpdateProfile />
               </ProtectedRoute>
             }
           />
