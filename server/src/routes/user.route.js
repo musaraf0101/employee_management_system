@@ -4,6 +4,8 @@ import {
   deleteUser,
   updateUser,
   getAllUsers,
+  getEmployeeProfile,
+  getUserById,
 } from "../controllers/user.controller.js";
 import { verifyToken } from "../middleware/verifyToken.js";
 import { authorizedRoles } from "./../middleware/role.js";
@@ -14,6 +16,20 @@ import {
 import { validate } from "./../middleware/valitator.js";
 
 const userRouter = express.Router();
+
+userRouter.get(
+  "/employee/profile",
+  verifyToken,
+  authorizedRoles("employee"),
+  getEmployeeProfile
+);
+
+userRouter.get(
+  "/user/:id",
+  verifyToken,
+  authorizedRoles("admin", "employee"),
+  getUserById
+);
 
 userRouter.get(
   "/admin/employees",
