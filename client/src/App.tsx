@@ -11,7 +11,7 @@ import LeaveRequest from "./pages/admin/LeaveRequest";
 const App = () => {
   return (
     <AuthProvider>
-      <div className="bg-[url('./src/assets/bgImage.svg')] bg-contain">
+      <div className="bg-black">
         <Routes>
           <Route path="/" element={<Login />} />
           <Route

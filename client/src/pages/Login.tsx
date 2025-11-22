@@ -56,13 +56,6 @@ const Login = () => {
         onSubmit={handleSubmit}
         className="border-2 bg-white/8 text-white border-gray-500 p-6 flex flex-col gap-6 rounded-lg shadow-lg"
       >
-        {/* <div className="flex items-center justify-center">
-          <img
-            src={"./src/assets/logo.png"}
-            alt="company logo"
-            className="w-[min(30vw,80px)] border rounded-xl"
-          />
-        </div> */}
 
         <input
           onChange={(e) => setEmail(e.target.value)}
