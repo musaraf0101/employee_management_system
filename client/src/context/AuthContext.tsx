@@ -41,14 +41,18 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   const login = async (email: string, password: string) => {
     try {
-      const response = await axios.post("http://localhost:3000/api/login", {
-        email,
-        password,
-      });
+      const response = await axios.post(
+        "http://localhost:3000/api/login",
+        {
+          email,
+          password,
+        },
+        { withCredentials: true }
+      );
 
       const role = response.data?.data?.role;
       const userName = response.data?.data?.name || response.data?.data?.email;
-      
+
       if (role === "admin" || role === "employee") {
         setUserRole(role);
         setName(userName);
@@ -86,7 +90,14 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   return (
     <AuthContext.Provider
-      value={{ login, logout, userRole, name, isAuthenticated: !!userRole, isLoading }}
+      value={{
+        login,
+        logout,
+        userRole,
+        name,
+        isAuthenticated: !!userRole,
+        isLoading,
+      }}
     >
       {children}
     </AuthContext.Provider>
