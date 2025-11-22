@@ -56,9 +56,9 @@ export const generateMonthlyLeaveReport = async (req, res) => {
     );
     doc.moveDown();
     const totalLeaves = leaves.length;
-    const approvedLeaves = leaves.filter((l) => l.status === "approved").length;
-    const rejectedLeaves = leaves.filter((l) => l.status === "rejected").length;
-    const pendingLeaves = leaves.filter((l) => l.status === "pending").length;
+    const approvedLeaves = leaves.filter((l) => l.status === "Approved").length;
+    const rejectedLeaves = leaves.filter((l) => l.status === "Rejected").length;
+    const pendingLeaves = leaves.filter((l) => l.status === "Pending").length;
 
     doc.fontSize(14).text("Summary", { underline: true });
     doc.fontSize(12);
