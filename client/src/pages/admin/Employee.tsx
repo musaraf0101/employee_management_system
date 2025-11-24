@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import AdminSidebar from "../../components/AdminSidebar";
 import axios from "axios";
 import toast from "react-hot-toast";
+import { API_BASE_URL } from "../../config/api";
 
 const Employee = () => {
   const [allEmployees, setAllEmployees] = useState<any[]>([]);
@@ -26,7 +27,7 @@ const Employee = () => {
     const fetchEmployees = async () => {
       try {
         const response = await axios.get(
-          "http://localhost:3000/api/admin/employees",
+          `${API_BASE_URL}/api/admin/employees`,
           {
             withCredentials: true,
           }
@@ -35,8 +36,8 @@ const Employee = () => {
         console.log("Full response:", response);
         console.log("Response status:", response.status);
         console.log("Response data:", response.data);
-        
-        const employees = response.data.data || response.data;  
+
+        const employees = response.data.data || response.data;
         setAllEmployees(employees);
         toast.success(`Loaded ${employees.length} employees`);
       } catch (error: any) {
@@ -44,8 +45,11 @@ const Employee = () => {
         console.error("Error response:", error.response);
         console.error("Error status:", error.response?.status);
         console.error("Error data:", error.response?.data);
-        
-        const errorMsg = error.response?.data?.message || error.message || "Failed to fetch employees";
+
+        const errorMsg =
+          error.response?.data?.message ||
+          error.message ||
+          "Failed to fetch employees";
         toast.error(errorMsg);
       } finally {
         setLoading(false);
@@ -122,21 +126,21 @@ const Employee = () => {
         }
 
         await axios.put(
-          `http://localhost:3000/api/update-user/${editingEmployeeId}`,
+          `${API_BASE_URL}/api/update-user/${editingEmployeeId}`,
           updateData,
           { withCredentials: true }
         );
 
         toast.success("Employee updated successfully!");
       } else {
-        await axios.post("http://localhost:3000/api/add-user", formData, {
+        await axios.post(`${API_BASE_URL}/api/add-user`, formData, {
           withCredentials: true,
         });
 
         toast.success("Employee added successfully!");
       }
       const updatedResponse = await axios.get(
-        "http://localhost:3000/api/admin/employees",
+        `${API_BASE_URL}/api/admin/employees`,
         { withCredentials: true }
       );
       setAllEmployees(updatedResponse.data.data || updatedResponse.data);
@@ -177,7 +181,7 @@ const Employee = () => {
 
     try {
       await axios.delete(
-        `http://localhost:3000/api/user-delete/${employeeToDelete.id}`,
+        `${API_BASE_URL}/api/user-delete/${employeeToDelete.id}`,
         {
           withCredentials: true,
         }
@@ -186,7 +190,7 @@ const Employee = () => {
       toast.success("Employee deleted successfully!");
 
       const updatedResponse = await axios.get(
-        "http://localhost:3000/api/admin/employees",
+        `${API_BASE_URL}/api/admin/employees`,
         { withCredentials: true }
       );
       setAllEmployees(updatedResponse.data.data || updatedResponse.data);

@@ -3,6 +3,7 @@ import { useNavigate, useParams } from "react-router-dom";
 import axios from "axios";
 import toast from "react-hot-toast";
 import EmployeeSidebar from "../../components/EmployeeSidebar";
+import { API_BASE_URL } from "../../config/api";
 
 interface UserProfile {
   _id: string;
@@ -40,12 +41,12 @@ const UpdateProfile = () => {
       let response;
 
       if (id) {
-        response = await axios.get(`http://localhost:3000/api/user/${id}`, {
+        response = await axios.get(`${API_BASE_URL}/api/user/${id}`, {
           withCredentials: true,
         });
       } else {
         response = await axios.get(
-          "http://localhost:3000/api/employee/profile",
+          `${API_BASE_URL}/api/employee/profile`,
           {
             withCredentials: true,
           }
@@ -118,7 +119,7 @@ const UpdateProfile = () => {
       }
 
       await axios.put(
-        `http://localhost:3000/api/update-user/${profile._id}`,
+        `${API_BASE_URL}/api/update-user/${profile._id}`,
         updateData,
         { withCredentials: true }
       );

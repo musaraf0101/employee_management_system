@@ -1,5 +1,6 @@
 import { useState } from "react";
 import axios from "axios";
+import { API_BASE_URL } from "../config/api";
 
 interface ModalProps {
   isOpen: boolean;
@@ -48,7 +49,7 @@ const LeaveModal = ({ isOpen, onClose, onSuccess }: ModalProps) => {
           ? { leaveType, startDate, endDate, reason }
           : { leaveType, startDate: new Date().toISOString().split('T')[0], startTime, endTime, reason };
 
-      await axios.post("http://localhost:3000/api/leave", leaveData, {
+      await axios.post(`${API_BASE_URL}/api/leave`, leaveData, {
         withCredentials: true,
       });
 

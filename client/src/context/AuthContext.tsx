@@ -7,6 +7,7 @@ import {
 } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
+import { API_BASE_URL } from "../config/api";
 
 interface AuthContextType {
   login: (email: string, password: string) => Promise<void>;
@@ -42,7 +43,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const login = async (email: string, password: string) => {
     try {
       const response = await axios.post(
-        "http://localhost:3000/api/login",
+        `${API_BASE_URL}/api/login`,
         {
           email,
           password,
@@ -77,7 +78,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   const logout = async () => {
     try {
-      await axios.post("http://localhost:3000/api/logout");
+      await axios.post(`${API_BASE_URL}/api/logout`);
       setUserRole(null);
       setName(null);
       localStorage.removeItem("role");

@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import EmployeeSidebar from "../../components/EmployeeSidebar";
 import LeaveModal from "../../components/LeaveModal";
 import axios from "axios";
+import { API_BASE_URL } from "../../config/api";
 
 const EmployeeDashboard = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -14,7 +15,7 @@ const EmployeeDashboard = () => {
 
   const fetchStats = async () => {
     try {
-      const response = await axios.get("http://localhost:3000/api/employee/stats", {
+      const response = await axios.get(`${API_BASE_URL}/api/employee/stats`, {
         withCredentials: true,
       });
       setStats({

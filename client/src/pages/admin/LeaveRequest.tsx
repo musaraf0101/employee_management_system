@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import AdminSidebar from "../../components/AdminSidebar";
 import axios from "axios";
 import toast from "react-hot-toast";
+import { API_BASE_URL } from "../../config/api";
 
 const LeaveRequest = () => {
   const [allLeaveRequests, setAllLeaveRequests] = useState<any[]>([]);
@@ -24,7 +25,7 @@ const LeaveRequest = () => {
     const fetchLeaveRequests = async () => {
       try {
         const response = await axios.get(
-          "http://localhost:3000/api/admin/leave-requests",
+          `${API_BASE_URL}/api/admin/leave-requests`,
           {
             withCredentials: true,
           }
@@ -53,7 +54,7 @@ const LeaveRequest = () => {
   const fetchEmployees = async () => {
     try {
       const response = await axios.get(
-        "http://localhost:3000/api/admin/employees",
+        `${API_BASE_URL}/api/admin/employees`,
         { withCredentials: true }
       );
       setAllEmployees(response.data.data || response.data);
@@ -70,7 +71,7 @@ const LeaveRequest = () => {
 
     try {
       const response = await axios.get(
-        `http://localhost:3000/api/report/leave-monthly`,
+        `${API_BASE_URL}/api/report/leave-monthly`,
         {
           params: {
             userId: selectedEmployee,
@@ -185,7 +186,7 @@ const LeaveRequest = () => {
   const handleApprove = async (requestId: string) => {
     try {
       await axios.put(
-        `http://localhost:3000/api/admin/leave-requests/${requestId}/approve`,
+        `${API_BASE_URL}/api/admin/leave-requests/${requestId}/approve`,
         {},
         { withCredentials: true }
       );
@@ -208,7 +209,7 @@ const LeaveRequest = () => {
   const handleReject = async (requestId: string) => {
     try {
       await axios.put(
-        `http://localhost:3000/api/admin/leave-requests/${requestId}/reject`,
+        `${API_BASE_URL}/api/admin/leave-requests/${requestId}/reject`,
         {},
         { withCredentials: true }
       );
@@ -640,3 +641,4 @@ const LeaveRequest = () => {
 };
 
 export default LeaveRequest;
+

@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import AdminSidebar from "../../components/AdminSidebar";
 import axios from "axios";
+import { API_BASE_URL } from "../../config/api";
 
 const AdminDashboard = () => {
   const [stats, setStats] = useState({
@@ -14,7 +15,7 @@ const AdminDashboard = () => {
     const fetchStats = async () => {
       try {
         const response = await axios.get(
-          "http://localhost:3000/api/admin/dashboard-stats",
+          `${API_BASE_URL}/api/admin/dashboard-stats`,
           {
             withCredentials: true,
           }
