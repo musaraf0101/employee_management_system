@@ -30,9 +30,7 @@ const LeaveRequest = () => {
             withCredentials: true,
           }
         );
-        console.log("Leave requests response:", response.data);
         const leaveRequests = response.data.data || response.data;
-        console.log("Leave requests:", leaveRequests);
         setAllLeaveRequests(leaveRequests);
         toast.success(`Loaded ${leaveRequests.length} leave requests`);
       } catch (error: any) {
@@ -53,10 +51,9 @@ const LeaveRequest = () => {
 
   const fetchEmployees = async () => {
     try {
-      const response = await axios.get(
-        `${API_BASE_URL}/api/admin/employees`,
-        { withCredentials: true }
-      );
+      const response = await axios.get(`${API_BASE_URL}/api/admin/employees`, {
+        withCredentials: true,
+      });
       setAllEmployees(response.data.data || response.data);
     } catch (error) {
       console.error("Error fetching employees:", error);
@@ -641,4 +638,3 @@ const LeaveRequest = () => {
 };
 
 export default LeaveRequest;
-

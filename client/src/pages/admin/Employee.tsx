@@ -33,10 +33,6 @@ const Employee = () => {
           }
         );
 
-        console.log("Full response:", response);
-        console.log("Response status:", response.status);
-        console.log("Response data:", response.data);
-
         const employees = response.data.data || response.data;
         setAllEmployees(employees);
         toast.success(`Loaded ${employees.length} employees`);
