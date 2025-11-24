@@ -32,7 +32,6 @@ const LeaveRequest = () => {
         );
         const leaveRequests = response.data.data || response.data;
         setAllLeaveRequests(leaveRequests);
-        toast.success(`Loaded ${leaveRequests.length} leave requests`);
       } catch (error: any) {
         console.error("Error fetching leave requests:", error);
         const errorMsg =

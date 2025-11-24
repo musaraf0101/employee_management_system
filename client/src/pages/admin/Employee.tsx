@@ -35,7 +35,6 @@ const Employee = () => {
 
         const employees = response.data.data || response.data;
         setAllEmployees(employees);
-        toast.success(`Loaded ${employees.length} employees`);
       } catch (error: any) {
         console.error("Error fetching employees:", error);
         console.error("Error response:", error.response);
